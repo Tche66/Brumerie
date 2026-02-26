@@ -103,7 +103,9 @@ export interface Product {
   sellerPremium?: boolean;
   status: ProductStatus;
   whatsappClickCount?: number;
+  viewCount?: number;
   bookmarkCount?: number;
+  priceHistory?: { price: number; date: string }[];
   createdAt?: any;
   paymentMethods?: PaymentInfo[];
 }

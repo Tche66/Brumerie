@@ -32,17 +32,23 @@ service cloud.firestore {
     // ── Products ───────────────────────────────────────────
     match /products/{productId} {
       allow read: if true;
+
       allow create: if isSignedIn() && 
                        request.resource.data.sellerId == request.auth.uid;
-      // Le vendeur peut tout modifier
-      allow update: if isSignedIn() && resource.data.sellerId == request.auth.uid;
-      // N'importe quel utilisateur connecté peut incrémenter viewCount ou whatsappClickCount
-      // (compteurs de vues et contacts — champs en lecture seule pour le vendeur)
+
+      // Le vendeur peut tout modifier sur son propre article
+      allow update: if isSignedIn() && 
+                       resource.data.sellerId == request.auth.uid;
+
+      // ✅ COMPTEURS — tout utilisateur connecté (sauf le vendeur lui-même)
+      // peut incrémenter uniquement viewCount et whatsappClickCount
       allow update: if isSignedIn() &&
                        request.auth.uid != resource.data.sellerId &&
                        request.resource.data.diff(resource.data).affectedKeys()
                          .hasOnly(['viewCount', 'whatsappClickCount']);
-      allow delete: if isSignedIn() && resource.data.sellerId == request.auth.uid;
+
+      allow delete: if isSignedIn() && 
+                       resource.data.sellerId == request.auth.uid;
     }
     
     // ── Conversations ──────────────────────────────────────
@@ -57,7 +63,6 @@ service cloud.firestore {
                        request.auth.uid in resource.data.participants;
       allow delete: if false;
       
-      // ── Messages (sous-collection) ──────────────────────
       match /messages/{messageId} {
         allow read: if isParticipant(conversationId);
         allow create: if isSignedIn() && (
@@ -83,7 +88,6 @@ service cloud.firestore {
     }
     
     // ── Reviews / Avis ─────────────────────────────────────
-    // ⚠️ NOUVEAU — corrige l'erreur "Missing or insufficient permissions"
     match /reviews/{reviewId} {
       allow read: if true;
       allow create: if isSignedIn();
@@ -91,14 +95,14 @@ service cloud.firestore {
                                request.auth.uid == resource.data.fromUserId;
     }
     
-    // ── Notifications ──────────────────────────────────────
-    // Chemin plat : /notifications/{notifId}  (utilisé par le code app)
+    // ── Notifications (chemin plat) ────────────────────────
     match /notifications/{notifId} {
       allow read, update, delete: if isSignedIn() && 
                                      request.auth.uid == resource.data.userId;
       allow create: if isSignedIn();
     }
-    // Chemin sous-collection (ancienne version, garde pour compat)
+    
+    // ── Notifications (sous-collection, compat) ────────────
     match /notifications/{userId}/items/{notifId} {
       allow read, update, delete: if isSignedIn() && request.auth.uid == userId;
       allow create: if isSignedIn();
