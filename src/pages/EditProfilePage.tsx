@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '@/config/firebase';
 import { NEIGHBORHOODS, MOBILE_PAYMENT_METHODS, PaymentInfo } from '@/types';
+import { PaymentLogo } from '@/components/PaymentLogo';
 import { compressImage } from '@/utils/helpers';
 
 interface EditProfilePageProps { onBack: () => void; onSaved: () => void; }
@@ -269,7 +270,7 @@ export function EditProfilePage({ onBack, onSaved }: EditProfilePageProps) {
                 const m = MOBILE_PAYMENT_METHODS.find(x => x.id === pm.method);
                 return (
                   <div key={idx} className="flex items-center gap-3 bg-slate-50 rounded-2xl px-4 py-3 border border-slate-100">
-                    <span className="text-xl">{m?.icon}</span>
+                    {m && <PaymentLogo logo={m.logo} name={m.name} color={m.color} size={36} />}
                     <div className="flex-1 min-w-0">
                       <p className="font-black text-slate-900 text-[11px]">{m?.name}</p>
                       <p className="text-slate-500 text-[10px] font-bold truncate">
@@ -297,7 +298,7 @@ export function EditProfilePage({ onBack, onSaved }: EditProfilePageProps) {
                     {MOBILE_PAYMENT_METHODS.map(m => (
                       <button key={m.id} onClick={() => setNewPM(p => ({ ...p, method: m.id }))}
                         className={`flex items-center gap-2 p-3 rounded-xl border-2 transition-all ${newPM.method === m.id ? 'border-green-500 bg-green-50' : 'border-slate-200 bg-white'}`}>
-                        <span>{m.icon}</span>
+                        <PaymentLogo logo={m.logo} name={m.name} color={m.color} size={28} />
                         <span className="text-[10px] font-black text-slate-700">{m.name.split(' ')[0]}</span>
                       </button>
                     ))}

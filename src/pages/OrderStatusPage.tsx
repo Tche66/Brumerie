@@ -10,6 +10,7 @@ import {
 import { Order, OrderStatus, MOBILE_PAYMENT_METHODS } from '@/types';
 import { RatingModal } from '@/components/RatingModal';
 import { hasReviewed } from '@/services/reviewService';
+import { PaymentLogo } from '@/components/PaymentLogo';
 import { updateDoc, doc } from 'firebase/firestore';
 import { db } from '@/config/firebase';
 
@@ -270,10 +271,7 @@ function OrderDetail({ orderId, onBack }: { orderId: string; onBack: () => void 
         {/* Coordonnées paiement (rappel vendeur) */}
         {isSeller && order.paymentInfo && order.status === 'proof_sent' && (
           <div className="bg-slate-50 rounded-2xl p-4 flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
-              style={{ background: (method?.color || '#000') + '20' }}>
-              {method?.icon}
-            </div>
+            {method && <PaymentLogo logo={method.logo} name={method.name} color={method.color} size={40} />}
             <div>
               <p className="text-[10px] text-slate-400 font-bold uppercase">{method?.name}</p>
               <p className="font-black text-slate-900">{order.paymentInfo.phone} · {order.paymentInfo.holderName}</p>

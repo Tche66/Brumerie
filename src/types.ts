@@ -3,8 +3,8 @@
 // ─── QUARTIERS ───────────────────────────────────────────
 export const NEIGHBORHOODS = [
   'Yopougon','Cocody','Abobo','Adjamé','Plateau','Marcory','Treichville',
-  'Koumassi','Port-Bouët','Attécoubé','Bingerville','Songon','Anyama',
-  'Bassam','Braffedon','Deux-Plateaux','Riviera','Angré','Bonoumin',
+  'Koumassi','Port-Bouët','Attécoubé','Bingerville','Songon','Jacqueville',
+  'Braffedon','Deux-Plateaux','Riviera','Angré','Bonoumin',
   'Palmeraie','Sogefiha','Williamsville','Gbagba','Avocatier','Biabou',
   'Locodjro','Selmer','Belleville','Niangon','Sideci','Doukouré',
   'Wassakara','Sagbé','Ancien Agban','Banco','Baoulé','Belleville-Yop',
@@ -17,23 +17,24 @@ export { MAX_CITIES };
 
 // ─── CATÉGORIES ──────────────────────────────────────────
 export const CATEGORIES = [
-  { id: 'phones',      label: 'Téléphones',    icon: '📱' },
-  { id: 'fashion',     label: 'Mode',          icon: '👗' },
-  { id: 'electronics', label: 'Électronique',  icon: '💻' },
-  { id: 'beauty',      label: 'Beauté',        icon: '💄' },
-  { id: 'furniture',   label: 'Maison',        icon: '🛋️' },
-  { id: 'food',        label: 'Alimentation',  icon: '🍎' },
-  { id: 'sports',      label: 'Sport',         icon: '⚽' },
-  { id: 'babies',      label: 'Bébé & Enfant', icon: '🧸' },
-  { id: 'other',       label: 'Autre',         icon: '📦' },
+  { id: 'fashion',      label: 'Mode & Prêt-à-porter',    icon: '👗' },
+  { id: 'shoes',        label: 'Chaussures & Sneakers',   icon: '👟' },
+  { id: 'beauty',       label: 'Beauté & Mèches',         icon: '💇‍♀️' },
+  { id: 'phones',       label: 'High-Tech & Smartphones', icon: '📱' },
+  { id: 'accessories',  label: 'Accessoires & Montres',   icon: '⌚' },
+  { id: 'electronics',  label: 'Électroménager',          icon: '📺' },
+  { id: 'food',         label: 'Alimentation & Épicerie', icon: '🧺' },
+  { id: 'babies',       label: 'Univers Bébé',            icon: '🍼' },
+  { id: 'furniture',    label: 'Maison & Déco',           icon: '🖼️' },
+  { id: 'services',     label: 'Services & Prestations',  icon: '🛠️' },
 ];
 
 // ─── PAIEMENT MOBILE ──────────────────────────────────────
 export const MOBILE_PAYMENT_METHODS = [
-  { id: 'wave',   name: 'Wave',              icon: '🌊', color: '#1BA6F9' },
-  { id: 'om',     name: 'Orange Money',      icon: '🟠', color: '#FF7900' },
-  { id: 'mtn',    name: 'MTN Mobile Money',  icon: '🟡', color: '#FFCC00' },
-  { id: 'moov',   name: 'Moov Money',        icon: '🔵', color: '#0066CC' },
+  { id: 'wave',  name: 'Wave',             logo: '/assets/payments/wave.png',   color: '#1BA6F9' },
+  { id: 'om',    name: 'Orange Money',     logo: '/assets/payments/orange.png', color: '#FF7900' },
+  { id: 'mtn',   name: 'MTN Mobile Money', logo: '/assets/payments/mtn.jpg',    color: '#FFCC00' },
+  { id: 'moov',  name: 'Moov Money',       logo: '/assets/payments/moov.png',   color: '#FF6B00' },
 ];
 
 export const BRUMERIE_FEE_PERCENT = 0; // MVP — pas de commission

@@ -7,6 +7,7 @@ import { uploadToCloudinary } from '@/utils/uploadImage';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/config/firebase';
 import { Product, MOBILE_PAYMENT_METHODS, PaymentInfo } from '@/types';
+import { PaymentLogo } from '@/components/PaymentLogo';
 
 interface OrderFlowPageProps {
   product: Product;
@@ -197,10 +198,7 @@ export function OrderFlowPage({ product, onBack, onOrderCreated }: OrderFlowPage
                   <button key={`${pm.method}-${pm.phone}`}
                     onClick={() => setPaymentInfo(pm)}
                     className={`w-full flex items-center gap-4 p-4 rounded-2xl border-2 text-left transition-all ${isSelected ? 'border-green-500 bg-green-50' : 'border-slate-100 bg-slate-50'}`}>
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
-                      style={{ background: m?.color + '20' }}>
-                      {m?.icon}
-                    </div>
+                    {m && <PaymentLogo logo={m.logo} name={m.name} color={m.color} size={42} />}
                     <div className="flex-1">
                       <p className="font-black text-slate-900 text-[12px]">{m?.name}</p>
                       <p className="text-slate-500 text-[11px] font-bold">{pm.phone} · {pm.holderName}</p>
@@ -258,7 +256,10 @@ export function OrderFlowPage({ product, onBack, onOrderCreated }: OrderFlowPage
 
         {/* Coordonnées */}
         <div className="bg-slate-50 rounded-3xl p-5 space-y-4">
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Envoyer via {method?.name}</p>
+          <div className="flex items-center gap-3">
+            {method && <PaymentLogo logo={method.logo} name={method.name} color={method.color} size={36} />}
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Envoyer via {method?.name}</p>
+          </div>
 
           {/* Numéro avec bouton copier */}
           <div className="flex items-center justify-between bg-white rounded-2xl p-4 border border-slate-100">
