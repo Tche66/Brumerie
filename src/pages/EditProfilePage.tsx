@@ -46,6 +46,12 @@ export function EditProfilePage({ onBack, onSaved }: EditProfilePageProps) {
     String((userProfile as any)?.deliveryPriceOtherZone || '')
   );
   const [bio, setBio] = useState(userProfile?.bio || '');
+  const [socialLinks, setSocialLinks] = useState({
+    instagram: userProfile?.socialLinks?.instagram || '',
+    tiktok:    userProfile?.socialLinks?.tiktok    || '',
+    facebook:  userProfile?.socialLinks?.facebook  || '',
+    twitter:   userProfile?.socialLinks?.twitter   || '',
+  });
   const [paymentMethods, setPaymentMethods] = useState<PaymentInfo[]>(
     userProfile?.defaultPaymentMethods || []
   );
@@ -93,14 +99,24 @@ export function EditProfilePage({ onBack, onSaved }: EditProfilePageProps) {
       }
 
       const updateData: any = { name: name.trim(), neighborhood, photoURL };
+      // Bio accessible à tous les vendeurs
       if (isSeller) {
+        updateData.bio = bio.trim();
         updateData.hasPhysicalShop = hasPhysicalShop;
         updateData.managesDelivery = managesDelivery;
-        updateData.bio = bio.trim();
         updateData.defaultPaymentMethods = paymentMethods;
         if (managesDelivery) {
           updateData.deliveryPriceSameZone = Number(deliveryPriceSameZone) || 0;
           updateData.deliveryPriceOtherZone = Number(deliveryPriceOtherZone) || 0;
+        }
+        // Liens sociaux réservés aux vérifié + premium
+        if (userProfile?.isVerified || userProfile?.isPremium) {
+          updateData.socialLinks = {
+            instagram: socialLinks.instagram.trim(),
+            tiktok:    socialLinks.tiktok.trim(),
+            facebook:  socialLinks.facebook.trim(),
+            twitter:   socialLinks.twitter.trim(),
+          };
         }
       }
 
@@ -193,12 +209,44 @@ export function EditProfilePage({ onBack, onSaved }: EditProfilePageProps) {
 
           {/* Bio */}
           <div className="space-y-3">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Bio</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Bio / Description</p>
             <textarea value={bio} onChange={e => setBio(e.target.value)}
-              placeholder="Décris ton activité, tes spécialités..."
+              placeholder="Décris ton activité, tes spécialités, ce qui te différencie..."
               rows={3}
               className="w-full px-5 py-4 bg-slate-50 rounded-3xl text-sm font-medium border border-slate-100 focus:ring-2 focus:ring-green-500 outline-none resize-none"/>
+            <p className="text-[9px] text-slate-400 ml-1">{bio.length}/200 caractères</p>
           </div>
+
+          {/* Liens sociaux — Vérifié uniquement */}
+          {(userProfile?.isVerified || userProfile?.isPremium) && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 ml-1">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Liens réseaux sociaux</p>
+                <span className="text-[8px] font-black px-2 py-0.5 rounded-full" style={{ background: '#EFF6FF', color: '#1D9BF0' }}>Vérifié</span>
+              </div>
+              <div className="bg-slate-50 rounded-3xl p-4 space-y-3 border border-slate-100">
+                {[
+                  { key: 'instagram', label: 'Instagram', placeholder: '@moncompte ou lien', icon: '📸' },
+                  { key: 'tiktok',    label: 'TikTok',    placeholder: '@moncompte ou lien', icon: '🎵' },
+                  { key: 'facebook',  label: 'Facebook',  placeholder: 'Lien page Facebook', icon: '📘' },
+                  { key: 'twitter',   label: 'Twitter/X', placeholder: '@moncompte',         icon: '𝕏' },
+                ].map(({ key, label, placeholder, icon }) => (
+                  <div key={key} className="flex items-center gap-3 bg-white rounded-2xl px-4 py-3 border border-slate-100">
+                    <span className="text-base w-6 text-center flex-shrink-0">{icon}</span>
+                    <div className="flex-1">
+                      <p className="text-[9px] font-black text-slate-400 uppercase mb-1">{label}</p>
+                      <input
+                        value={socialLinks[key as keyof typeof socialLinks]}
+                        onChange={e => setSocialLinks(prev => ({ ...prev, [key]: e.target.value }))}
+                        placeholder={placeholder}
+                        className="w-full text-[12px] font-medium text-slate-700 bg-transparent outline-none placeholder:text-slate-300"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Options boutique + livraison */}
           <div className="space-y-3">

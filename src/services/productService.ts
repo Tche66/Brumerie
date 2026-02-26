@@ -94,8 +94,13 @@ export async function getProducts(filters?: {
       createdAt: doc.data().createdAt ? (doc.data().createdAt as Timestamp).toDate() : new Date(),
     })) as Product[];
 
-    // Tri manuel par date (Plus fiable en mobile)
-    products.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    // Tri : vérifié en premier (+20% visibilité), puis par date
+    products.sort((a, b) => {
+      const aScore = (a.sellerVerified ? 1 : 0);
+      const bScore = (b.sellerVerified ? 1 : 0);
+      if (bScore !== aScore) return bScore - aScore; // vérifié d'abord
+      return b.createdAt.getTime() - a.createdAt.getTime();
+    });
 
     if (filters?.searchTerm) {
       const searchLower = filters.searchTerm.toLowerCase();

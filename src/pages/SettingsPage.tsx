@@ -158,6 +158,15 @@ export function SettingsPage({ onBack, onNavigate, role = 'seller' }: SettingsPa
             badge={userProfile?.isVerified ? '✓ ACTIF' : undefined}
             badgeBlue
           />
+          {/* Boutique personnalisable — vérifié/premium uniquement */}
+          {(userProfile?.isVerified || userProfile?.isPremium) && (
+            <SettingItem
+              icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><circle cx="12" cy="10" r="3"/></svg>}
+              label="Personnaliser ma boutique"
+              sublabel="Bannière, couleur, slogan"
+              onClick={() => onNavigate('shop-customize')}
+            />
+          )}
         </SettingSection>
 
         {/* Paiement mobile — vendeurs seulement */}

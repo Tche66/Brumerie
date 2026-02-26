@@ -165,6 +165,8 @@ function AppContent() {
   const navigate = (page: Page) => {
     setNavigationHistory(prev => [...prev, page]);
     setActivePage(page);
+    // Pousser un état dans l'historique navigateur pour intercepter le bouton retour physique
+    window.history.pushState({ page }, '', window.location.pathname);
   };
 
   const goBack = () => {
@@ -182,6 +184,28 @@ function AppContent() {
       setActivePage(prevPage);
     } else { setActivePage('home'); }
   };
+
+  // ── Interception touche retour physique du téléphone ──────────
+  useEffect(() => {
+    // État initial dans l'historique (sans déclencher popstate)
+    window.history.replaceState({ page: 'home' }, '', window.location.pathname);
+
+    const handlePopState = (e: PopStateEvent) => {
+      // Empêche le navigateur de vraiment naviguer
+      // On gère nous-mêmes le retour
+      if (navigationHistory.length > 1) {
+        goBack();
+        // Repousser un état pour garder le bouton retour disponible
+        window.history.pushState({ page: activePage }, '', window.location.pathname);
+      } else {
+        // On est à la racine — remettre l'état pour pas quitter
+        window.history.pushState({ page: 'home' }, '', window.location.pathname);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [navigationHistory, activePage, productHistory]);
 
   const handleProductClick = (product: Product) => {
     // Empiler le produit actuel si on est déjà sur product-detail

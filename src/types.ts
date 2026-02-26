@@ -69,6 +69,12 @@ export interface User {
   hasPhysicalShop?: boolean;
   managesDelivery?: boolean;
   bio?: string;
+  socialLinks?: {
+    instagram?: string;
+    tiktok?: string;
+    facebook?: string;
+    twitter?: string;
+  };
   rating?: number;
   reviewCount?: number;
   contactCount?: number;

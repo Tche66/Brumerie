@@ -122,6 +122,17 @@ export function ProfilePage({ onProductClick, onNavigate }: ProfilePageProps) {
   return (
     <div className="min-h-screen bg-white page-container pb-24">
 
+      {/* Bannière boutique — vérifié/premium avec bannière */}
+      {(userProfile.isVerified || userProfile.isPremium) && userProfile.shopBanner && (
+        <div className="w-full h-32 overflow-hidden relative">
+          <img src={userProfile.shopBanner} alt="Bannière boutique" className="w-full h-full object-cover" />
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 40%, rgba(255,255,255,0.9) 100%)' }} />
+        </div>
+      )}
+      {(userProfile.isVerified || userProfile.isPremium) && !userProfile.shopBanner && userProfile.shopThemeColor && (
+        <div className="w-full h-16" style={{ background: userProfile.shopThemeColor + '25' }} />
+      )}
+
       {/* Bouton Paramètres */}
       <button onClick={() => onNavigate?.('settings')} className="settings-gear-btn" title="Paramètres">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -181,8 +192,48 @@ export function ProfilePage({ onProductClick, onNavigate }: ProfilePageProps) {
           )}
         </div>
 
+        {/* Bio — tous vendeurs */}
+        {userProfile.bio && (
+          <p className="text-[12px] text-slate-600 font-medium leading-relaxed text-center px-2 mb-3 max-w-xs">
+            {userProfile.bio}
+          </p>
+        )}
 
-      </div>
+        {/* Liens réseaux sociaux — Vérifié uniquement */}
+        {(userProfile.isVerified || userProfile.isPremium) && userProfile.socialLinks && (
+          <div className="flex gap-2 justify-center mb-3 flex-wrap">
+            {userProfile.socialLinks.instagram && (
+              <a href={userProfile.socialLinks.instagram.startsWith('http') ? userProfile.socialLinks.instagram : `https://instagram.com/${userProfile.socialLinks.instagram.replace('@','')}`}
+                target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-1.5 bg-gradient-to-br from-purple-500 to-pink-500 text-white text-[9px] font-black px-3 py-1.5 rounded-xl uppercase tracking-wider">
+                📸 Instagram
+              </a>
+            )}
+            {userProfile.socialLinks.tiktok && (
+              <a href={userProfile.socialLinks.tiktok.startsWith('http') ? userProfile.socialLinks.tiktok : `https://tiktok.com/@${userProfile.socialLinks.tiktok.replace('@','')}`}
+                target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-1.5 bg-slate-900 text-white text-[9px] font-black px-3 py-1.5 rounded-xl uppercase tracking-wider">
+                🎵 TikTok
+              </a>
+            )}
+            {userProfile.socialLinks.facebook && (
+              <a href={userProfile.socialLinks.facebook.startsWith('http') ? userProfile.socialLinks.facebook : `https://facebook.com/${userProfile.socialLinks.facebook}`}
+                target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-1.5 bg-blue-600 text-white text-[9px] font-black px-3 py-1.5 rounded-xl uppercase tracking-wider">
+                📘 Facebook
+              </a>
+            )}
+            {userProfile.socialLinks.twitter && (
+              <a href={userProfile.socialLinks.twitter.startsWith('http') ? userProfile.socialLinks.twitter : `https://x.com/${userProfile.socialLinks.twitter.replace('@','')}`}
+                target="_blank" rel="noopener noreferrer"
+                className="flex items-center gap-1.5 bg-slate-800 text-white text-[9px] font-black px-3 py-1.5 rounded-xl uppercase tracking-wider">
+                𝕏 Twitter
+              </a>
+            )}
+          </div>
+        )}
+
+      </div>{/* fin header profil */}
 
       {/* Tabs 3 onglets */}
       <div className="flex px-6 gap-2 mb-5">
@@ -241,12 +292,18 @@ export function ProfilePage({ onProductClick, onNavigate }: ProfilePageProps) {
         )}
       </div>
 
-      {/* Modifier profil */}
-      <div className="px-6 mt-6 mb-4">
+      {/* Modifier profil + Personnaliser boutique */}
+      <div className="px-6 mt-6 mb-4 flex flex-col gap-3">
         <button onClick={() => onNavigate?.('edit-profile')}
           className="btn-secondary-custom w-full py-4 rounded-[2rem] text-[11px] font-bold uppercase tracking-[0.2em]">
           Modifier mon profil
         </button>
+        {(userProfile?.isVerified || userProfile?.isPremium) && (
+          <button onClick={() => onNavigate?.('shop-customize')}
+            className="w-full py-4 rounded-[2rem] text-[11px] font-bold uppercase tracking-[0.2em] border-2 border-green-200 text-green-700 bg-green-50 active:scale-[0.98] transition-all">
+            🎨 Personnaliser ma boutique
+          </button>
+        )}
       </div>
 
       {/* Action Sheet */}

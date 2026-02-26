@@ -91,6 +91,19 @@ export function SellerProfilePage({ sellerId, onBack, onProductClick }: SellerPr
         </div>
       ) : seller ? (
         <div className="animate-fade-up">
+          {/* Bannière boutique — vérifié/premium uniquement */}
+          {(seller.isVerified || (seller as any).isPremium) && (seller as any).shopBanner && (
+            <div className="w-full h-36 overflow-hidden relative">
+              <img src={(seller as any).shopBanner} alt="Bannière boutique"
+                className="w-full h-full object-cover" />
+              <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.3) 100%)' }} />
+            </div>
+          )}
+          {/* Fond couleur si pas de bannière mais couleur définie */}
+          {(seller.isVerified || (seller as any).isPremium) && !(seller as any).shopBanner && (seller as any).shopThemeColor && (
+            <div className="w-full h-16" style={{ background: (seller as any).shopThemeColor + '25' }} />
+          )}
+
           <div className="bg-white px-6 pt-10 pb-8 border-b border-slate-100 shadow-sm mb-6">
             <div className="flex flex-col items-center text-center mb-8">
               <div className="relative mb-5">
@@ -164,9 +177,49 @@ export function SellerProfilePage({ sellerId, onBack, onProductClick }: SellerPr
                 )}
               </div>
 
-              
-            </div>
+              {/* Bio — visible pour tous les vendeurs */}
+              {(seller as any).bio && (
+                <p className="text-[12px] text-slate-600 font-medium leading-relaxed text-center px-4 mt-4 max-w-xs">
+                  {(seller as any).bio}
+                </p>
+              )}
 
+              {/* Liens sociaux — Vérifié uniquement */}
+              {(seller.isVerified || (seller as any).isPremium) && (seller as any).socialLinks && (
+                <div className="flex gap-2 justify-center mt-3 flex-wrap">
+                  {(seller as any).socialLinks.instagram && (
+                    <a href={(seller as any).socialLinks.instagram.startsWith('http') ? (seller as any).socialLinks.instagram : `https://instagram.com/${(seller as any).socialLinks.instagram.replace('@','')}`}
+                      target="_blank" rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 text-white text-[9px] font-black px-3 py-1.5 rounded-xl uppercase tracking-wider"
+                      style={{ background: 'linear-gradient(135deg, #833AB4, #E1306C)' }}>
+                      📸 Instagram
+                    </a>
+                  )}
+                  {(seller as any).socialLinks.tiktok && (
+                    <a href={(seller as any).socialLinks.tiktok.startsWith('http') ? (seller as any).socialLinks.tiktok : `https://tiktok.com/@${(seller as any).socialLinks.tiktok.replace('@','')}`}
+                      target="_blank" rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 bg-slate-900 text-white text-[9px] font-black px-3 py-1.5 rounded-xl uppercase tracking-wider">
+                      🎵 TikTok
+                    </a>
+                  )}
+                  {(seller as any).socialLinks.facebook && (
+                    <a href={(seller as any).socialLinks.facebook.startsWith('http') ? (seller as any).socialLinks.facebook : `https://facebook.com/${(seller as any).socialLinks.facebook}`}
+                      target="_blank" rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 bg-blue-600 text-white text-[9px] font-black px-3 py-1.5 rounded-xl uppercase tracking-wider">
+                      📘 Facebook
+                    </a>
+                  )}
+                  {(seller as any).socialLinks.twitter && (
+                    <a href={(seller as any).socialLinks.twitter.startsWith('http') ? (seller as any).socialLinks.twitter : `https://x.com/${(seller as any).socialLinks.twitter.replace('@','')}`}
+                      target="_blank" rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 bg-slate-800 text-white text-[9px] font-black px-3 py-1.5 rounded-xl uppercase tracking-wider">
+                      𝕏 Twitter
+                    </a>
+                  )}
+                </div>
+              )}
+
+            </div>
 
           </div>
 
