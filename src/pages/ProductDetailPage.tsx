@@ -41,39 +41,31 @@ export function ProductDetailPage({ product, onBack, onSellerClick, onStartChat,
   const [showReportModal, setShowReportModal] = useState(false);
   const [reportReason, setReportReason] = useState('');
   const [reportSent, setReportSent] = useState(false);
-  // Compteurs live — initialisés à -1 (chargement) pour éviter le flash
-  const [liveViewCount, setLiveViewCount] = useState<number>(-1);
-  const [liveContactCount, setLiveContactCount] = useState<number>(-1);
-  const viewIncrementedRef = useRef(false); // évite double incrément en StrictMode
+  // Compteurs temps réel (mis à jour automatiquement depuis Firestore)
+  const [liveViewCount, setLiveViewCount] = useState(product.viewCount || 0);
+  const [liveContactCount, setLiveContactCount] = useState(product.whatsappClickCount || 0);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const categoryLabel = CATEGORIES.find(c => c.id === product.category)?.label || product.category;
 
-  // ── Abonnement temps réel + incrément vue en une seule opération ──
+  // ── Abonnement temps réel aux compteurs du produit ──────
   useEffect(() => {
-    viewIncrementedRef.current = false;
-    const isSeller = currentUser?.uid === product.sellerId;
-
     const unsub = onSnapshot(doc(db, 'products', product.id), (snap) => {
-      if (!snap.exists()) return;
-      const data = snap.data();
-      setLiveViewCount(data.viewCount ?? 0);
-      setLiveContactCount(data.whatsappClickCount ?? 0);
-
-      // Incrémenter UNE SEULE FOIS après le premier snapshot — jamais pour le vendeur
-      if (!viewIncrementedRef.current && !isSeller && currentUser) {
-        viewIncrementedRef.current = true;
-        incrementViewCount(product.id).catch(e =>
-          console.error('[ViewCount] Règles Firestore — voir FIRESTORE_RULES.md :', e)
-        );
+      if (snap.exists()) {
+        const data = snap.data();
+        setLiveViewCount(data.viewCount || 0);
+        setLiveContactCount(data.whatsappClickCount || 0);
       }
     });
+    return unsub;
+  }, [product.id]);
 
-    return () => {
-      viewIncrementedRef.current = false;
-      unsub();
-    };
-  }, [product.id, currentUser?.uid]);
+  // ── Incrémenter les vues — SEULEMENT les visiteurs (pas le vendeur) ──
+  useEffect(() => {
+    if (product.id && currentUser && currentUser.uid !== product.sellerId) {
+      incrementViewCount(product.id);
+    }
+  }, [product.id]);
 
   // Bookmark sync
   useEffect(() => {
@@ -299,15 +291,11 @@ export function ProductDetailPage({ product, onBack, onSellerClick, onStartChat,
         {/* Stats row */}
         <div className="grid grid-cols-3 gap-3 mb-8">
           <div className="bg-white rounded-2xl p-4 text-center border border-slate-100 shadow-sm">
-            <p className="text-xl font-black text-slate-900">
-              {liveContactCount === -1 ? '…' : liveContactCount}
-            </p>
+            <p className="text-xl font-black text-slate-900">{liveContactCount}</p>
             <p className="text-[8px] font-black text-slate-400 uppercase tracking-wider mt-0.5">Contacts</p>
           </div>
           <div className="bg-white rounded-2xl p-4 text-center border border-slate-100 shadow-sm">
-            <p className="text-xl font-black text-slate-900">
-              {liveViewCount === -1 ? '…' : liveViewCount}
-            </p>
+            <p className="text-xl font-black text-slate-900">{liveViewCount}</p>
             <p className="text-[8px] font-black text-slate-400 uppercase tracking-wider mt-0.5">Vues</p>
           </div>
           <div className="bg-white rounded-2xl p-4 text-center border border-slate-100 shadow-sm">
