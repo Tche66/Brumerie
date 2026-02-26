@@ -154,7 +154,7 @@ export function SellPage({ onClose, onSuccess }: SellPageProps) {
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#92400E" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 mt-0.5"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
             <p className="text-[10px] text-amber-900 font-bold leading-relaxed">
               <span className="font-black uppercase">Photo de profil recommandée</span><br/>
-              Les annonces avec une photo de profil inspirent plus confiance et obtiennent plus de contacts. Ajoute-en une dans ton profil !
+              Les annonces avec une photo de profil sont plus crédibles et obtiennent plus de contacts. Ajoute-en une dans ton profil !
             </p>
           </div>
         )}

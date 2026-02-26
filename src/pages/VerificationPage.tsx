@@ -33,8 +33,8 @@ export function VerificationPage({ onBack }: VerificationPageProps) {
           <svg width="22" height="22" fill="none" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" stroke="#0F0F0F" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/></svg>
         </button>
         <div>
-          <h1 className="font-black text-sm uppercase tracking-widest text-slate-900">Badge de Confiance</h1>
-          <p className="text-[9px] text-slate-400 font-bold mt-0.5">Les vendeurs vérifiés reçoivent 3× plus de contacts</p>
+          <h1 className="font-black text-sm uppercase tracking-widest text-slate-900">Identité Vérifiable</h1>
+          <p className="text-[9px] text-slate-400 font-bold mt-0.5">Le badge indique que l'identité a été contrôlée par Brumerie</p>
         </div>
       </div>
 
@@ -48,7 +48,7 @@ export function VerificationPage({ onBack }: VerificationPageProps) {
 
           <div className="space-y-3">
             {[
-              { icon: '❌', bold: 'Aucun badge', rest: 'de confiance' },
+              { icon: '❌', bold: 'Aucun badge', rest: 'd\'identité vérifiée' },
               { icon: '📸', bold: null, rest: 'Photos réelles uniquement' },
               { icon: '📍', bold: null, rest: 'Visibilité Normale' },
               { icon: '💬', bold: null, rest: 'Max 5 chats / jour' },
@@ -92,7 +92,7 @@ export function VerificationPage({ onBack }: VerificationPageProps) {
               <p className="text-slate-300 line-through text-lg font-bold">3000</p>
               <p className="text-5xl font-black text-slate-900">2000 <span className="text-xl font-bold">FCFA</span></p>
             </div>
-            <p className="text-[10px] text-slate-400 mb-5">Le meilleur rapport confiance / prix</p>
+            <p className="text-[10px] text-slate-400 mb-5">Visibilité accrue · Identité contrôlée</p>
 
             <div className="space-y-3">
               {[
