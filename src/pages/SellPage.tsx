@@ -95,23 +95,34 @@ export function SellPage({ onClose, onSuccess }: SellPageProps) {
     if (selectedCities.length === 0) { setError('Sélectionne au moins une ville.'); return; }
     setLoading(true);
     try {
-      await createProduct({
-        title: title.trim(),
-        price: parseFloat(price),
-        originalPrice: originalPrice.trim() && parseFloat(originalPrice) > parseFloat(price) ? parseFloat(originalPrice) : undefined,
-        description: description.trim(),
+      // Construire le payload sans aucun champ undefined (Firestore refuse)
+      const productPayload: Record<string, any> = {
+        title:        title.trim(),
+        price:        parseFloat(price),
+        description:  description.trim(),
         category,
-        condition: condition || undefined,
-        quantity: parseInt(quantity) > 1 ? parseInt(quantity) : undefined,
-        neighborhood: selectedCities[0], // principal pour compatibilité
-        neighborhoods: selectedCities,   // multi-ville
-        sellerId: userProfile.id,
-        sellerName: userProfile.name,
-        sellerPhone: userProfile.phone,
-        sellerPhoto: userProfile.photoURL,
-        sellerVerified: userProfile.isVerified,
+        neighborhood: selectedCities[0],
+        neighborhoods: selectedCities,
+        sellerId:      userProfile.id,
+        sellerName:    userProfile.name,
+        sellerPhone:   userProfile.phone || '',
+        sellerVerified: userProfile.isVerified || false,
         images: [],
-      }, images);
+      };
+      // Champs optionnels : ne les inclure que s'ils ont une vraie valeur
+      if (originalPrice.trim() && parseFloat(originalPrice) > parseFloat(price)) {
+        productPayload.originalPrice = parseFloat(originalPrice);
+      }
+      if (condition) {
+        productPayload.condition = condition;
+      }
+      if (parseInt(quantity) > 1) {
+        productPayload.quantity = parseInt(quantity);
+      }
+      if (userProfile.photoURL) {
+        productPayload.sellerPhoto = userProfile.photoURL;
+      }
+      await createProduct(productPayload as any, images);
       setSuccess(true);
       setTimeout(() => onSuccess(), 2000);
     } catch (err: any) {

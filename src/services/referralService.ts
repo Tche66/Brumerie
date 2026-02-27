@@ -49,39 +49,45 @@ export async function getUserByReferralCode(code: string): Promise<string | null
 
 // ── Appliquer le parrainage lors de l'inscription ────────────────
 export async function applyReferral(newUserId: string, referralCode: string): Promise<boolean> {
+  if (!referralCode.trim()) return false;
   const referrerId = await getUserByReferralCode(referralCode);
   if (!referrerId || referrerId === newUserId) return false;
 
-  // Marquer le nouvel user comme parrainé
-  await updateDoc(doc(db, 'users', newUserId), { referredBy: referrerId });
+  // Marquer le nouvel user comme parrainé (son propre doc → rules permettent)
+  await updateDoc(doc(db, 'users', newUserId), {
+    referredBy:     referrerId,      // UID du parrain
+    referredByCode: referralCode,    // Code utilisé (traçabilité)
+  });
 
-  // Incrémenter le compteur du parrain
-  const referrerRef = doc(db, 'users', referrerId);
-  const referrerSnap = await getDoc(referrerRef);
-  if (!referrerSnap.exists()) return false;
+  // Note : l'incrémentation du parrain peut être bloquée par les règles Firestore
+  // si "allow update: if request.auth.uid == userId"
+  // Dans ce cas, recalculateReferralCount() corrigera le compteur à la prochaine visite
+  try {
+    const referrerRef  = doc(db, 'users', referrerId);
+    const referrerSnap = await getDoc(referrerRef);
+    if (!referrerSnap.exists()) return true; // filleul quand même marqué
 
-  const referrerData = referrerSnap.data();
-  const newCount = (referrerData.referralCount || 0) + 1;
+    const referrerData = referrerSnap.data();
+    const newCount = (referrerData.referralCount || 0) + 1;
+    const rewards   = REFERRAL_REWARDS.filter(r => r.threshold <= newCount);
+    const topReward = rewards[rewards.length - 1];
 
-  // Calculer les paliers débloqués
-  const rewards = REFERRAL_REWARDS.filter(r => r.threshold <= newCount);
-  const topReward = rewards[rewards.length - 1];
-
-  const updateData: Record<string, any> = { referralCount: increment(1) };
-
-  if (topReward) {
-    updateData.referralBonusPublications = topReward.extraPublications;
-    updateData.referralBonusChats        = topReward.extraChats;
-    if (topReward.freeVerified && !referrerData.referralFreeVerifiedUntil) {
-      // Offrir 30 jours de badge vérifié
-      const until = new Date();
-      until.setDate(until.getDate() + 30);
-      updateData.referralFreeVerifiedUntil = until;
-      updateData.isVerified = true; // activer temporairement
+    const updateData: Record<string, any> = { referralCount: increment(1) };
+    if (topReward) {
+      updateData.referralBonusPublications = topReward.extraPublications;
+      updateData.referralBonusChats        = topReward.extraChats;
+      if (topReward.freeVerified && !referrerData.referralFreeVerifiedUntil) {
+        const until = new Date();
+        until.setDate(until.getDate() + 30);
+        updateData.referralFreeVerifiedUntil = until;
+        updateData.isVerified = true;
+      }
     }
+    await updateDoc(referrerRef, updateData);
+  } catch (e) {
+    // Règles Firestore bloquent l'update du parrain → sera recalculé via recalculateReferralCount
+    console.warn('[Referral] Update parrain bloqué (règles Firestore), sera recalculé:', e);
   }
-
-  await updateDoc(referrerRef, updateData);
   return true;
 }
 
@@ -103,4 +109,24 @@ export async function getReferralStats(uid: string) {
 export function buildReferralLink(code: string): string {
   const base = window.location.origin;
   return `${base}?ref=${code}`;
+}
+
+// ── Recalculer le compte parrainage (comptage réel depuis Firestore) ──
+// Utilisé quand les règles Firestore empêchent l'update cross-user
+export async function recalculateReferralCount(uid: string): Promise<number> {
+  const q    = query(collection(db, 'users'), where('referredBy', '==', uid));
+  const snap = await getDocs(q);
+  const count = snap.size;
+
+  // Calculer les paliers débloqués
+  const rewards    = REFERRAL_REWARDS.filter(r => r.threshold <= count);
+  const topReward  = rewards[rewards.length - 1];
+
+  const updateData: Record<string, any> = { referralCount: count };
+  if (topReward) {
+    updateData.referralBonusPublications = topReward.extraPublications;
+    updateData.referralBonusChats        = topReward.extraChats;
+  }
+  await updateDoc(doc(db, 'users', uid), updateData);
+  return count;
 }

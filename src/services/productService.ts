@@ -2,6 +2,7 @@
 import {
   collection,
   addDoc,
+  deleteField,
   getDocs,
   getDoc,
   doc,
@@ -15,6 +16,13 @@ import {
 } from 'firebase/firestore';
 import { db } from '@/config/firebase';
 import { Product } from '@/types';
+
+// ── Supprimer les champs undefined (Firestore les refuse) ──────
+function cleanUndefined(obj: Record<string, any>): Record<string, any> {
+  return Object.fromEntries(
+    Object.entries(obj).filter(([, v]) => v !== undefined)
+  );
+}
 
 /**
  * Publier un produit (Version Ultra-Robuste)
@@ -56,7 +64,7 @@ export async function createProduct(
       priceHistory: [{ price: productData.price, date: new Date().toISOString() }],
     };
 
-    const docRef = await addDoc(collection(db, 'products'), product);
+    const docRef = await addDoc(collection(db, 'products'), cleanUndefined(product as Record<string, any>));
     return docRef.id;
 
   } catch (error: any) {
@@ -251,10 +259,14 @@ export async function updateProduct(
   }
 ): Promise<void> {
   try {
-    await updateDoc(doc(db, 'products', productId), {
-      ...data,
-      updatedAt: new Date(),
-    });
+    // Nettoyer les undefined + remplacer null par deleteField()
+    const cleaned: Record<string, any> = {};
+    for (const [k, v] of Object.entries({ ...data, updatedAt: new Date() })) {
+      if (v === undefined) continue;
+      if (v === null) { cleaned[k] = deleteField(); }
+      else cleaned[k] = v;
+    }
+    await updateDoc(doc(db, 'products', productId), cleaned);
   } catch (error) {
     console.error('Erreur updateProduct:', error);
     throw error;

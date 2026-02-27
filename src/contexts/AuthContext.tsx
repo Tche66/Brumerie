@@ -59,6 +59,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       neighborhood: userData.neighborhood || '',
       isVerified:   false,
       bookmarkedProductIds: [],
+      // Stocker le code parrainage utilisé (pour traçabilité)
+      ...(userData.referredBy ? { referredByCode: userData.referredBy } : {}),
     };
 
     await setDoc(doc(db, 'users', uid), newUser);
@@ -69,7 +71,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Appliquer parrainage si fourni
     if (userData.referredBy) {
-      await applyReferral(uid, userData.referredBy).catch(console.warn);
+      try {
+        const ok = await applyReferral(uid, userData.referredBy);
+        if (!ok) console.warn('[Referral] Code non trouvé ou invalide:', userData.referredBy);
+      } catch (refErr) {
+        // Ne pas bloquer l'inscription si parrainage échoue
+        console.error('[Referral] Erreur applyReferral:', refErr);
+      }
     }
 
     // Email de bienvenue

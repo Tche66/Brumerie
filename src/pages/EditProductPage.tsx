@@ -38,16 +38,21 @@ export function EditProductPage({ product, onBack, onSaved }: EditProductPagePro
 
     setLoading(true);
     try {
-      await updateProduct(product.id, {
-        title: title.trim(),
+      // Construire le payload sans undefined (Firestore refuse)
+      const updatePayload: Record<string, any> = {
+        title:       title.trim(),
         description: description.trim(),
-        price: priceNum,
-        originalPrice: opNum ?? undefined,
+        price:       priceNum,
         category,
         neighborhood,
-        condition: condition || undefined,
-        quantity: parseInt(quantity) > 1 ? parseInt(quantity) : undefined,
-      });
+        // null = supprimer le champ, valeur = mettre à jour
+        originalPrice: opNum ?? null,
+      };
+      if (condition)               updatePayload.condition = condition;
+      else                         updatePayload.condition = null;
+      if (parseInt(quantity) > 1)  updatePayload.quantity  = parseInt(quantity);
+      else                         updatePayload.quantity  = null;
+      await updateProduct(product.id, updatePayload as any);
       onSaved();
     } catch {
       setError('Erreur lors de la mise à jour. Réessaie.');

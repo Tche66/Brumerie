@@ -64,44 +64,79 @@ exports.handler = async (event) => {
     const htmlContent = `
 <!DOCTYPE html>
 <html lang="fr">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">
-<table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 16px">
-  <tr><td align="center">
-  <table width="100%" style="max-width:480px;background:#fff;border-radius:24px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08)">
-    <tr><td style="background:linear-gradient(135deg,#16A34A,#115E2E);padding:40px 32px;text-align:center">
-      <div style="width:72px;height:72px;background:rgba(255,255,255,0.2);border-radius:20px;margin:0 auto 16px;display:flex;align-items:center;justify-content:center">
-        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-      </div>
-      <h1 style="color:#fff;font-size:24px;font-weight:900;margin:0 0 4px">Brumerie</h1>
-      <p style="color:rgba(255,255,255,0.75);font-size:11px;margin:0;text-transform:uppercase;letter-spacing:2px">Vérification email</p>
-    </td></tr>
-    <tr><td style="padding:40px 32px">
-      <h2 style="color:#0f172a;font-size:20px;font-weight:900;margin:0 0 8px">Bienvenue, ${name} 👋</h2>
-      <p style="color:#64748b;font-size:14px;line-height:1.6;margin:0 0 28px">
-        Entre ce code dans l'application pour confirmer ton adresse email et créer ton compte.
-      </p>
-      <div style="background:#f8fafc;border:2px dashed #e2e8f0;border-radius:20px;padding:28px;text-align:center;margin:0 0 20px">
-        <p style="font-size:54px;font-weight:900;letter-spacing:0.4em;color:#0f172a;margin:0;font-family:monospace">${code}</p>
-        <p style="color:#94a3b8;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;margin:12px 0 0">⏱ Valable 10 minutes</p>
-      </div>
-      <div style="background:#fef9c3;border-radius:12px;padding:12px 16px;margin:0 0 20px">
-        <p style="color:#713f12;font-size:11px;font-weight:700;margin:0;text-align:center">
-          📬 Tu ne trouves pas cet email ? Vérifie ton dossier <strong>Spam / Courrier indésirable</strong>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Code de vérification Brumerie</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f0fdf4;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f0fdf4;padding:32px 16px">
+    <tr><td align="center">
+    <table role="presentation" width="100%" style="max-width:520px;background:#ffffff;border-radius:28px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,0.10)">
+
+      <!-- HEADER VERT -->
+      <tr><td style="background:linear-gradient(150deg,#16A34A 0%,#0f5c2e 100%);padding:40px 32px;text-align:center">
+        <!-- Logo texte stylisé (fonctionne dans tous les clients email) -->
+        <div style="display:inline-block;background:rgba(255,255,255,0.18);border-radius:20px;padding:16px 28px;margin-bottom:18px">
+          <span style="font-size:28px;font-weight:900;color:#ffffff;letter-spacing:-1px;font-family:Georgia,serif">
+            🛍 Brumerie
+          </span>
+        </div>
+        <p style="color:rgba(255,255,255,0.75);font-size:11px;margin:0;text-transform:uppercase;letter-spacing:3px;font-weight:600">
+          Vérification Email
         </p>
-      </div>
-      <p style="color:#94a3b8;font-size:11px;text-align:center;margin:0">
-        Si tu n'es pas à l'origine de cette demande, ignore ce message.
-      </p>
-    </td></tr>
-    <tr><td style="background:#f8fafc;padding:20px 32px;text-align:center;border-top:1px solid #f1f5f9">
-      <p style="color:#cbd5e1;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;margin:0">
-        Brumerie · Abidjan 🇨🇮 · contact.brumerie@gmail.com
-      </p>
+      </td></tr>
+
+      <!-- CORPS -->
+      <tr><td style="padding:40px 32px 32px">
+        <h2 style="color:#0f172a;font-size:22px;font-weight:900;margin:0 0 10px;line-height:1.2">
+          Bienvenue, ${name} 👋
+        </h2>
+        <p style="color:#64748b;font-size:14px;line-height:1.65;margin:0 0 30px">
+          Ton inscription sur Brumerie est presque terminée !<br>
+          Copie ce code dans l'application pour confirmer ton email et accéder à l'application.
+        </p>
+
+        <!-- BLOC CODE -->
+        <div style="background:#f8fafc;border:2px dashed #d1fae5;border-radius:20px;padding:30px 24px;text-align:center;margin:0 0 24px">
+          <p style="font-size:13px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:3px;margin:0 0 14px">
+            Ton code de vérification
+          </p>
+          <div style="background:#0f172a;border-radius:16px;padding:18px 24px;display:inline-block;margin:0 0 12px">
+            <span style="font-size:52px;font-weight:900;letter-spacing:0.5em;color:#ffffff;font-family:'Courier New',monospace;padding-right:-0.5em">
+              ${code}
+            </span>
+          </div>
+          <p style="color:#94a3b8;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:2px;margin:0">
+            ⏱&nbsp; Expire dans 10 minutes
+          </p>
+        </div>
+
+        <!-- SÉCURITÉ -->
+        <div style="background:#fef2f2;border-left:4px solid #fca5a5;border-radius:0 12px 12px 0;padding:12px 16px;margin:0 0 24px">
+          <p style="color:#991b1b;font-size:12px;font-weight:700;margin:0">
+            🔐 &nbsp;Ne partage jamais ce code. Brumerie ne te le demandera jamais par téléphone.
+          </p>
+        </div>
+
+        <p style="color:#94a3b8;font-size:12px;text-align:center;margin:0">
+          Si tu n'es pas à l'origine de cette inscription, ignore ce message.
+        </p>
+      </td></tr>
+
+      <!-- FOOTER -->
+      <tr><td style="background:#f8fafc;padding:20px 32px;text-align:center;border-top:2px solid #f0fdf4">
+        <p style="color:#94a3b8;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;margin:0 0 8px">
+          Brumerie &bull; Le commerce de quartier &bull; Abidjan 🇨🇮
+        </p>
+        <p style="color:#cbd5e1;font-size:10px;margin:0">
+          📬 &nbsp;Email introuvable ? Vérifie ton dossier <strong>Spam</strong> ou <strong>Courrier indésirable</strong>
+        </p>
+      </td></tr>
+
+    </table>
     </td></tr>
   </table>
-  </td></tr>
-</table>
 </body>
 </html>`;
 

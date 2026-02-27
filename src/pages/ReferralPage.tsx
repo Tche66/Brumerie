@@ -1,7 +1,7 @@
 // src/pages/ReferralPage.tsx — Page parrainage Brumerie
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { ensureReferralCode, buildReferralLink, getReferralStats } from '@/services/referralService';
+import { ensureReferralCode, buildReferralLink, getReferralStats, recalculateReferralCount } from '@/services/referralService';
 import { REFERRAL_REWARDS } from '@/types';
 
 interface ReferralPageProps { onBack: () => void; }
@@ -21,9 +21,12 @@ export function ReferralPage({ onBack }: ReferralPageProps) {
     (async () => {
       const c = await ensureReferralCode(currentUser.uid, userProfile.name);
       setCode(c);
+      // Recalculer le vrai nombre depuis Firestore (évite les bugs de règles)
+      const realCount = await recalculateReferralCount(currentUser.uid);
+      setCount(realCount);
+      // Récupérer les autres stats
       const stats = await getReferralStats(currentUser.uid);
       if (stats) {
-        setCount(stats.count);
         setBonusPub(stats.bonusPublications);
         setBonusChat(stats.bonusChats);
         if (stats.freeVerifiedUntil?.toDate) setFreeVerif(stats.freeVerifiedUntil.toDate());
