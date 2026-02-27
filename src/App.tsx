@@ -27,6 +27,7 @@ import { DashboardPage } from '@/pages/DashboardPage';
 import { EditProductPage } from '@/pages/EditProductPage';
 import { OrderFlowPage } from '@/pages/OrderFlowPage';
 import { OrderStatusPage } from '@/pages/OrderStatusPage';
+import { ReferralPage } from '@/pages/ReferralPage';
 import { ToastContainer } from '@/components/ToastNotification';
 import { useToast } from '@/hooks/useToast';
 import { subscribeToNotifications } from '@/services/notificationService';
@@ -36,7 +37,7 @@ type Page =
   | 'product-detail' | 'seller-profile' | 'chat'
   | 'edit-profile' | 'verification' | 'support'
   | 'settings' | 'privacy' | 'terms' | 'about' | 'notifications'
-  | 'order-flow' | 'order-status' | 'shop-customize' | 'dashboard' | 'edit-product';
+  | 'order-flow' | 'order-status' | 'shop-customize' | 'dashboard' | 'edit-product' | 'referral';
 
 // ── AuthGate — composant dédié hors auth ──────────────────────
 function AuthGate() {
@@ -331,6 +332,9 @@ function AppShell() {
         )}
         {activePage === 'order-status' && (
           <OrderStatusPage orderId={selectedOrderId || undefined} onBack={goBack} />
+        )}
+        {activePage === 'referral' && (
+          <ReferralPage onBack={goBack} />
         )}
       </main>
 

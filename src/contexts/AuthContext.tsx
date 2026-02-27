@@ -11,12 +11,16 @@ import {
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '@/config/firebase';
 import { User } from '@/types';
+import { generateOTP, storeOTP, verifyOTP, sendOTPEmail } from '@/services/otpService';
+import { applyReferral, ensureReferralCode } from '@/services/referralService';
 
 interface AuthContextType {
   currentUser: FirebaseUser | null;
   userProfile: User | null;
   loading: boolean;
   signUp: (email: string, password: string, userData: Partial<User>) => Promise<void>;
+  sendVerificationOTP: (email: string, name: string) => Promise<void>;
+  confirmOTP: (email: string, code: string) => Promise<'valid' | 'expired' | 'invalid'>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
@@ -51,7 +55,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       role: userData.role || 'buyer',
       neighborhood: userData.neighborhood || '',
       isVerified: false,
-      salesCount: 0,
       createdAt: new Date(),
       publicationCount: 0,
       publicationLimit: 50,
@@ -60,6 +63,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     await setDoc(doc(db, 'users', uid), newUser);
     setUserProfile(newUser);
+
+    // Générer le code parrainage automatiquement
+    await ensureReferralCode(uid, userData.name || '');
+
+    // Appliquer le parrainage si un code a été fourni
+    if (userData.referredBy) {
+      await applyReferral(uid, userData.referredBy as string);
+    }
+  }
+
+  // Envoyer OTP de vérification
+  async function sendVerificationOTP(email: string, name: string) {
+    const code = generateOTP();
+    await storeOTP(email, code);
+    await sendOTPEmail(email, code, name);
+  }
+
+  // Confirmer le code OTP
+  async function confirmOTP(email: string, code: string): Promise<'valid' | 'expired' | 'invalid'> {
+    return verifyOTP(email, code);
   }
 
   // Connexion
@@ -103,7 +126,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Observer changements auth
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user: any) => {
       setCurrentUser(user);
       if (user) {
         await loadUserProfile(user.uid);
@@ -125,6 +148,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signOut,
     resetPassword,
     refreshUserProfile,
+    sendVerificationOTP,
+    confirmOTP,
   };
 
   return (

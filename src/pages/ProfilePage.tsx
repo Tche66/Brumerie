@@ -298,13 +298,7 @@ export function ProfilePage({ onProductClick, onNavigate }: ProfilePageProps) {
                   Remettre en vente
                 </button>
               )}
-              <button onClick={async () => {
-                  if (window.confirm('Supprimer définitivement cet article ?')) {
-                    await deleteProduct(actionProduct.id, userProfile.id);
-                    setProducts(prev => prev.filter(p => p.id !== actionProduct.id));
-                    setActionProduct(null);
-                  }
-                }}
+              <button onClick={() => setDeleteModalProduct(actionProduct.id)}
                 className="w-full py-5 rounded-3xl bg-red-50 text-red-600 font-bold text-xs uppercase tracking-widest active:scale-95 transition-all">
                 Supprimer l'annonce
               </button>
@@ -315,6 +309,24 @@ export function ProfilePage({ onProductClick, onNavigate }: ProfilePageProps) {
           </div>
         </div>
       )}
+
+      <ConfirmModal
+        visible={!!deleteModalProduct}
+        title="Supprimer l'article ?"
+        message="Cette action est irréversible. L'annonce sera définitivement supprimée."
+        confirmLabel="Supprimer"
+        cancelLabel="Annuler"
+        danger
+        onConfirm={async () => {
+          if (deleteModalProduct && userProfile) {
+            await deleteProduct(deleteModalProduct, userProfile.id);
+            setProducts(prev => prev.filter(p => p.id !== deleteModalProduct));
+            setActionProduct(null);
+          }
+          setDeleteModalProduct(null);
+        }}
+        onCancel={() => setDeleteModalProduct(null)}
+      />
     </div>
   );
 }

@@ -44,6 +44,20 @@ export const VERIFICATION_PRICE = 2000; // FCFA/mois — badge VÉRIFIÉ
 export const PREMIUM_PRICE = 5000;      // FCFA/mois — badge PREMIUM (futur)
 
 // Limites par plan
+// ─── PALIERS DE PARRAINAGE ───────────────────────────────────
+export const REFERRAL_REWARDS = [
+  { threshold: 10, label: '10 invités', extraPublications: 1, extraChats: 0, freeVerified: false,
+    description: '+1 publication par mois' },
+  { threshold: 15, label: '15 invités', extraPublications: 1, extraChats: 1, freeVerified: false,
+    description: '+1 publication + +1 conversation/jour' },
+  { threshold: 20, label: '20 invités', extraPublications: 2, extraChats: 1, freeVerified: false,
+    description: '+2 publications + +1 conversation/jour' },
+  { threshold: 30, label: '30 invités', extraPublications: 3, extraChats: 2, freeVerified: false,
+    description: '+3 publications + +2 conversations/jour' },
+  { threshold: 50, label: '50 invités', extraPublications: 5, extraChats: 3, freeVerified: true,
+    description: 'Badge Vérifié offert 1 mois + +5 publications' },
+];
+
 export const PLAN_LIMITS = {
   simple:   { products: 5,  dailyChats: 5,  boost: 0   },
   verified: { products: 20, dailyChats: 999, boost: 20  },
@@ -87,6 +101,17 @@ export interface User {
   shopThemeColor?: string;   // ex: '#16A34A'
   shopBanner?: string;       // URL image bannière
   shopSlogan?: string;       // ex: "La mode à prix imbattable"
+  // ─── Parrainage ──────────────────────────────────────────
+  referralCode?: string;     // Code unique ex: "KOFFI-X7K2"
+  referredBy?: string;       // UID du parrain
+  referralCount?: number;    // Nombre d'invités actifs
+  referralBonusPublications?: number; // Publications bonus obtenues
+  referralBonusChats?: number;        // Chats bonus obtenus
+  referralFreeVerifiedUntil?: any;    // Badge Vérifié offert jusqu'à (Date)
+  // ─── Vérification email OTP ──────────────────────────────
+  emailVerified?: boolean;   // Email vérifié par OTP
+  otpCode?: string;          // Code OTP temporaire (stocké hashé)
+  otpExpires?: any;          // Expiration OTP
 }
 
 // ─── PRODUCT ──────────────────────────────────────────────

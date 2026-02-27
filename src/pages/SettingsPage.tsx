@@ -1,5 +1,6 @@
 // src/pages/SettingsPage.tsx — Sprint 5 fix
 import React, { useState } from 'react';
+import { ConfirmModal } from '@/components/ConfirmModal';
 import { useAuth } from '@/contexts/AuthContext';
 import { MOBILE_PAYMENT_METHODS, PaymentInfo } from '@/types';
 import { updateUserProfile } from '@/services/userService';
@@ -51,6 +52,7 @@ function SettingSection({ title, children }: { title: string; children: React.Re
 export function SettingsPage({ onBack, onNavigate, role = 'seller' }: SettingsPageProps) {
   const { currentUser, userProfile, signOut, refreshUserProfile } = useAuth();
   const isBuyer = role === 'buyer';
+  const [showSignOutModal, setShowSignOutModal] = useState(false);
 
   // ── État paiement mobile ──────────────────────────────────
   const [paymentMethods, setPaymentMethods] = useState<PaymentInfo[]>(
@@ -158,6 +160,14 @@ export function SettingsPage({ onBack, onNavigate, role = 'seller' }: SettingsPa
             badge={userProfile?.isVerified ? '✓ ACTIF' : undefined}
             badgeBlue
           />
+          <SettingItem
+            icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16A34A" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>}
+            label="Parrainage"
+            sublabel={`Invite des amis · ${userProfile?.referralCount || 0} invités rejoints`}
+            onClick={() => onNavigate('referral')}
+            badge={(userProfile?.referralCount || 0) >= 10 ? 'ACTIF' : undefined}
+            badgeBlue={(userProfile?.referralCount || 0) >= 10}
+          />
           {/* Boutique personnalisable — vérifié/premium uniquement */}
           {(userProfile?.isVerified || userProfile?.isPremium) && (
             <SettingItem
@@ -258,7 +268,7 @@ export function SettingsPage({ onBack, onNavigate, role = 'seller' }: SettingsPa
 
         {/* Déconnexion */}
         <div className="mt-6 px-2">
-          <button onClick={() => { if(confirm('Voulez-vous vous déconnecter ?')) signOut(); }}
+          <button onClick={() => setShowSignOutModal(true)}
             className="w-full py-5 rounded-[2rem] bg-red-50 border-2 border-red-100 text-red-500 font-black uppercase tracking-[0.2em] text-[11px] active:scale-95 transition-all">
             Se déconnecter
           </button>
@@ -268,6 +278,17 @@ export function SettingsPage({ onBack, onNavigate, role = 'seller' }: SettingsPa
           Brumerie ® 2025 · Abidjan 🇨🇮
         </p>
       </div>
+
+      <ConfirmModal
+        visible={showSignOutModal}
+        title="Se déconnecter ?"
+        message="Tu devras te reconnecter pour accéder à ton compte."
+        confirmLabel="Se déconnecter"
+        cancelLabel="Annuler"
+        danger
+        onConfirm={() => { setShowSignOutModal(false); signOut(); }}
+        onCancel={() => setShowSignOutModal(false)}
+      />
     </div>
   );
 }
