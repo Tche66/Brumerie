@@ -180,7 +180,7 @@ export function ProductDetailPage({ product, onBack, onSellerClick, onStartChat,
     if (!reportReason.trim()) return;
     const subject = encodeURIComponent('Signalement produit - Brumerie');
     const body = encodeURIComponent(`Produit : ${product.title}\nVendeur : ${product.sellerName}\nID : ${product.id}\nRaison : ${reportReason}`);
-    window.open(`mailto:brumerieciv.email@gmail.com?subject=${subject}&body=${body}`, '_blank');
+    window.open(`mailto:contact.brumerie@gmail.com?subject=${subject}&body=${body}`, '_blank');
     setReportSent(true);
     setTimeout(() => setShowReportModal(false), 2000);
   };

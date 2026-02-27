@@ -53,7 +53,7 @@ export function PWAInstallBanner() {
       // iOS fallback
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
       if (isIOS) {
-        alert("Sur iPhone/iPad :\n1. Appuie sur le bouton Partager (↑)\n2. Puis « Sur l'écran d'accueil »\n3. Appuie sur « Ajouter »");
+        setShowIOSGuide(true);
       }
     }
   };

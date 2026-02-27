@@ -1,6 +1,6 @@
 // src/services/referralService.ts — Système de parrainage Brumerie
 import {
-  doc, getDoc, updateDoc, collection, query, where, getDocs, increment
+  doc, getDoc, updateDoc, collection, query, where, getDocs, increment, limit
 } from 'firebase/firestore';
 import { db } from '@/config/firebase';
 import { REFERRAL_REWARDS } from '@/types';
@@ -42,7 +42,7 @@ export async function ensureReferralCode(uid: string, name: string): Promise<str
 // ── Récupérer l'user propriétaire d'un code parrainage ──────────
 export async function getUserByReferralCode(code: string): Promise<string | null> {
   if (!code.trim()) return null;
-  const q    = query(collection(db, 'users'), where('referralCode', '==', code.toUpperCase()));
+  const q    = query(collection(db, 'users'), where('referralCode', '==', code.toUpperCase()), limit(1));
   const snap = await getDocs(q);
   return snap.empty ? null : snap.docs[0].id;
 }

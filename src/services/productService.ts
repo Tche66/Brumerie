@@ -47,7 +47,7 @@ export async function createProduct(
       const data = await response.json();
 
       if (!response.ok) {
-        alert("Erreur Cloudinary : " + (data.error?.message || "Inconnue"));
+        console.error("Erreur Cloudinary:", data.error?.message || "Inconnue");
         throw new Error('Upload failed');
       }
 
@@ -68,7 +68,7 @@ export async function createProduct(
     return docRef.id;
 
   } catch (error: any) {
-    alert("Erreur de publication : " + error.message);
+    console.error("Erreur de publication:", error.message);
     throw error;
   }
 }
@@ -226,7 +226,7 @@ export function requestVerificationViaWhatsApp(user: { name: string; phone: stri
 export function sendFeedbackViaEmail(feedback: { type: string; message: string; name: string; email: string }) {
   const subject = encodeURIComponent(`Feedback Brumerie - ${feedback.type}`);
   const body = encodeURIComponent(`De: ${feedback.name}\n\n${feedback.message}`);
-  return `mailto:brumerieciv.email@gmail.com?subject=${subject}&body=${body}`;
+  return `mailto:contact.brumerie@gmail.com?subject=${subject}&body=${body}`;
 }
 
 /**
