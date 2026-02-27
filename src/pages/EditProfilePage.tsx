@@ -42,9 +42,6 @@ export function EditProfilePage({ onBack, onSaved }: EditProfilePageProps) {
   const [deliveryPriceSameZone, setDeliveryPriceSameZone] = useState<string>(
     String((userProfile as any)?.deliveryPriceSameZone || '')
   );
-  const [deliveryPriceOtherZone, setDeliveryPriceOtherZone] = useState<string>(
-    String((userProfile as any)?.deliveryPriceOtherZone || '')
-  );
   const [bio, setBio] = useState(userProfile?.bio || '');
   const [socialLinks, setSocialLinks] = useState({
     instagram: userProfile?.socialLinks?.instagram || '',
@@ -107,7 +104,7 @@ export function EditProfilePage({ onBack, onSaved }: EditProfilePageProps) {
         updateData.defaultPaymentMethods = paymentMethods;
         if (managesDelivery) {
           updateData.deliveryPriceSameZone = Number(deliveryPriceSameZone) || 0;
-          updateData.deliveryPriceOtherZone = Number(deliveryPriceOtherZone) || 0;
+          updateData.deliveryPriceOtherZone = Number(deliveryPriceSameZone) || 0; // Même valeur
         }
         // Liens sociaux réservés aux vérifié + premium
         if (userProfile?.isVerified || userProfile?.isPremium) {
@@ -225,18 +222,20 @@ export function EditProfilePage({ onBack, onSaved }: EditProfilePageProps) {
                 <span className="text-[8px] font-black px-2 py-0.5 rounded-full" style={{ background: '#EFF6FF', color: '#1D9BF0' }}>Vérifié</span>
               </div>
               <div className="bg-slate-50 rounded-3xl p-4 space-y-3 border border-slate-100">
-                {[
-                  { key: 'instagram', label: 'Instagram', placeholder: '@moncompte ou lien', icon: '📸' },
-                  { key: 'tiktok',    label: 'TikTok',    placeholder: '@moncompte ou lien', icon: '🎵' },
-                  { key: 'facebook',  label: 'Facebook',  placeholder: 'Lien page Facebook', icon: '📘' },
-                  { key: 'twitter',   label: 'Twitter/X', placeholder: '@moncompte',         icon: '𝕏' },
-                ].map(({ key, label, placeholder, icon }) => (
+                {([
+                  { key: 'instagram' as const, label: 'Instagram', placeholder: '@moncompte ou lien', logo: '/assets/social/instagram.jpg' },
+                  { key: 'tiktok'    as const, label: 'TikTok',    placeholder: '@moncompte ou lien', logo: '/assets/social/tiktok.jpg'    },
+                  { key: 'facebook'  as const, label: 'Facebook',  placeholder: 'Lien page Facebook', logo: '/assets/social/facebook.png'  },
+                  { key: 'twitter'   as const, label: 'X (Twitter)',placeholder: '@moncompte',         logo: '/assets/social/twitter.jpg'   },
+                ] as { key: keyof typeof socialLinks; label: string; placeholder: string; logo: string }[]).map(({ key, label, placeholder, logo }) => (
                   <div key={key} className="flex items-center gap-3 bg-white rounded-2xl px-4 py-3 border border-slate-100">
-                    <span className="text-base w-6 text-center flex-shrink-0">{icon}</span>
+                    <div className="w-8 h-8 rounded-xl overflow-hidden flex-shrink-0 shadow-sm">
+                      <img src={logo} alt={label} className="w-full h-full object-cover" />
+                    </div>
                     <div className="flex-1">
                       <p className="text-[9px] font-black text-slate-400 uppercase mb-1">{label}</p>
                       <input
-                        value={socialLinks[key as keyof typeof socialLinks]}
+                        value={socialLinks[key]}
                         onChange={e => setSocialLinks(prev => ({ ...prev, [key]: e.target.value }))}
                         placeholder={placeholder}
                         className="w-full text-[12px] font-medium text-slate-700 bg-transparent outline-none placeholder:text-slate-300"
@@ -281,30 +280,18 @@ export function EditProfilePage({ onBack, onSaved }: EditProfilePageProps) {
               {/* Prix de livraison si activé */}
               {managesDelivery && (
                 <div className="bg-white rounded-2xl p-4 space-y-3 border border-slate-100">
-                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Tarifs de livraison (FCFA)</p>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-[9px] text-slate-400 font-bold block mb-1.5">Même quartier</label>
-                      <div className="relative">
-                        <input type="number" value={deliveryPriceSameZone}
-                          onChange={e => setDeliveryPriceSameZone(e.target.value)}
-                          placeholder="Ex: 500"
-                          className="w-full px-4 py-3 bg-slate-50 rounded-xl text-[12px] font-black border-2 border-transparent focus:border-green-500 outline-none"/>
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] text-slate-400 font-bold">FCFA</span>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="text-[9px] text-slate-400 font-bold block mb-1.5">Tout Abidjan</label>
-                      <div className="relative">
-                        <input type="number" value={deliveryPriceOtherZone}
-                          onChange={e => setDeliveryPriceOtherZone(e.target.value)}
-                          placeholder="Ex: 1500"
-                          className="w-full px-4 py-3 bg-slate-50 rounded-xl text-[12px] font-black border-2 border-transparent focus:border-green-500 outline-none"/>
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] text-slate-400 font-bold">FCFA</span>
-                      </div>
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Tarif de livraison (FCFA)</p>
+                  <div>
+                    <label className="text-[9px] text-slate-400 font-bold block mb-1.5">🚚 Livraison Abidjan</label>
+                    <div className="relative">
+                      <input type="number" value={deliveryPriceSameZone}
+                        onChange={e => setDeliveryPriceSameZone(e.target.value)}
+                        placeholder="Ex: 1000"
+                        className="w-full px-4 py-3 bg-slate-50 rounded-xl text-[12px] font-black border-2 border-transparent focus:border-green-500 outline-none"/>
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] text-slate-400 font-bold">FCFA</span>
                     </div>
                   </div>
-                  <p className="text-[9px] text-slate-400 font-medium">Ces prix s'ajoutent automatiquement à la fiche d'achat si l'acheteur choisit la livraison.</p>
+                  <p className="text-[9px] text-slate-400 font-medium">Ce tarif s'affiche automatiquement sur tes annonces si tu proposes la livraison.</p>
                 </div>
               )}
             </div>

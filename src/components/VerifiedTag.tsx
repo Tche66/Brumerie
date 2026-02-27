@@ -16,13 +16,8 @@ export function VerifiedTag({ tier, isVerified, isPremium, size = 'md' }: Verifi
   const txt = { xs: 'text-[6px]', sm: 'text-[7px]', md: 'text-[8px]', lg: 'text-[10px]' };
   const ico = { xs: 8, sm: 9, md: 10, lg: 12 };
 
-  // ── Simple : label photo réelle gris ──
-  if (effectiveTier === 'simple') return (
-    <span className={`inline-flex items-center gap-1 font-black uppercase tracking-wider text-slate-400 bg-slate-100 rounded-full ${pad[size]} ${txt[size]}`}>
-      <span>📸</span>
-      Photo Réelle
-    </span>
-  );
+  // ── Simple : aucun badge affiché ──
+  if (effectiveTier === 'simple') return null;
 
   // ── Vérifié : bleu #1D9BF0 ──
   if (effectiveTier === 'verified') return (

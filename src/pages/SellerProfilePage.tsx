@@ -1,3 +1,4 @@
+import { SocialBar } from '@/components/SocialIcon';
 import { VerifiedTag } from '@/components/VerifiedTag';
 import React, { useState, useEffect } from 'react';
 import { subscribeSellerReviews } from '@/services/reviewService';
@@ -184,38 +185,10 @@ export function SellerProfilePage({ sellerId, onBack, onProductClick }: SellerPr
                 </p>
               )}
 
-              {/* Liens sociaux — Vérifié uniquement */}
-              {(seller.isVerified || (seller as any).isPremium) && (seller as any).socialLinks && (
-                <div className="flex gap-2 justify-center mt-3 flex-wrap">
-                  {(seller as any).socialLinks.instagram && (
-                    <a href={(seller as any).socialLinks.instagram.startsWith('http') ? (seller as any).socialLinks.instagram : `https://instagram.com/${(seller as any).socialLinks.instagram.replace('@','')}`}
-                      target="_blank" rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 text-white text-[9px] font-black px-3 py-1.5 rounded-xl uppercase tracking-wider"
-                      style={{ background: 'linear-gradient(135deg, #833AB4, #E1306C)' }}>
-                      📸 Instagram
-                    </a>
-                  )}
-                  {(seller as any).socialLinks.tiktok && (
-                    <a href={(seller as any).socialLinks.tiktok.startsWith('http') ? (seller as any).socialLinks.tiktok : `https://tiktok.com/@${(seller as any).socialLinks.tiktok.replace('@','')}`}
-                      target="_blank" rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 bg-slate-900 text-white text-[9px] font-black px-3 py-1.5 rounded-xl uppercase tracking-wider">
-                      🎵 TikTok
-                    </a>
-                  )}
-                  {(seller as any).socialLinks.facebook && (
-                    <a href={(seller as any).socialLinks.facebook.startsWith('http') ? (seller as any).socialLinks.facebook : `https://facebook.com/${(seller as any).socialLinks.facebook}`}
-                      target="_blank" rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 bg-blue-600 text-white text-[9px] font-black px-3 py-1.5 rounded-xl uppercase tracking-wider">
-                      📘 Facebook
-                    </a>
-                  )}
-                  {(seller as any).socialLinks.twitter && (
-                    <a href={(seller as any).socialLinks.twitter.startsWith('http') ? (seller as any).socialLinks.twitter : `https://x.com/${(seller as any).socialLinks.twitter.replace('@','')}`}
-                      target="_blank" rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 bg-slate-800 text-white text-[9px] font-black px-3 py-1.5 rounded-xl uppercase tracking-wider">
-                      𝕏 Twitter
-                    </a>
-                  )}
+              {/* Liens sociaux avec vrais logos — tous vendeurs */}
+              {(seller as any).socialLinks && Object.values((seller as any).socialLinks).some(Boolean) && (
+                <div className="mt-3">
+                  <SocialBar links={(seller as any).socialLinks} size={34} />
                 </div>
               )}
 

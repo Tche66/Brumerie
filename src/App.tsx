@@ -1,5 +1,6 @@
-// src/App.tsx — Sprint 2 : Messagerie intégrée
 import React, { useState, useEffect } from 'react';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+// src/App.tsx — Sprint 2 : Messagerie intégrée
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { updateUserProfile } from '@/services/userService';
 import { subscribeTotalUnread } from '@/services/messagingService';
@@ -115,6 +116,17 @@ function AppContent() {
   const prevNotifsRef = React.useRef<Set<string>>(new Set());
 
   useEffect(() => { window.scrollTo(0, 0); }, [activePage, selectedProduct]);
+
+  // ✅ Reset navigation vers 'home' quand l'utilisateur se déconnecte
+  // Évite les crashs sur des pages qui nécessitent userProfile
+  useEffect(() => {
+    if (!currentUser) {
+      setActivePage('home');
+      setSelectedProduct(null);
+      setSelectedSellerId(null);
+      setSelectedConversation(null);
+    }
+  }, [currentUser]);
 
   // Abonnement total messages non-lus → badge BottomNav
   useEffect(() => {
@@ -307,6 +319,7 @@ function AppContent() {
         {activePage === 'dashboard' && (
           <DashboardPage
             onBack={goBack}
+            onUpgrade={() => navigate('verification')}
             onEditProduct={(product: Product) => { setProductToEdit(product); navigate('edit-product'); }}
             onOpenOrder={(orderId: string) => { setSelectedOrderId(orderId); navigate('order-status'); }}
           />
@@ -371,5 +384,5 @@ function AppContent() {
 }
 
 export default function App() {
-  return <AuthProvider><AppContent /></AuthProvider>;
+  return <ErrorBoundary><AuthProvider><AppContent /></AuthProvider></ErrorBoundary>;
 }

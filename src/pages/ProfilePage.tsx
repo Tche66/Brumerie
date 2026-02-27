@@ -2,6 +2,7 @@
 import { VerifiedTag } from '@/components/VerifiedTag';
 import { subscribeSellerReviews } from '@/services/reviewService';
 import { Review } from '@/types';
+import { SocialBar } from '@/components/SocialIcon';
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 
@@ -199,37 +200,10 @@ export function ProfilePage({ onProductClick, onNavigate }: ProfilePageProps) {
           </p>
         )}
 
-        {/* Liens réseaux sociaux — Vérifié uniquement */}
-        {(userProfile.isVerified || userProfile.isPremium) && userProfile.socialLinks && (
-          <div className="flex gap-2 justify-center mb-3 flex-wrap">
-            {userProfile.socialLinks.instagram && (
-              <a href={userProfile.socialLinks.instagram.startsWith('http') ? userProfile.socialLinks.instagram : `https://instagram.com/${userProfile.socialLinks.instagram.replace('@','')}`}
-                target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-1.5 bg-gradient-to-br from-purple-500 to-pink-500 text-white text-[9px] font-black px-3 py-1.5 rounded-xl uppercase tracking-wider">
-                📸 Instagram
-              </a>
-            )}
-            {userProfile.socialLinks.tiktok && (
-              <a href={userProfile.socialLinks.tiktok.startsWith('http') ? userProfile.socialLinks.tiktok : `https://tiktok.com/@${userProfile.socialLinks.tiktok.replace('@','')}`}
-                target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-1.5 bg-slate-900 text-white text-[9px] font-black px-3 py-1.5 rounded-xl uppercase tracking-wider">
-                🎵 TikTok
-              </a>
-            )}
-            {userProfile.socialLinks.facebook && (
-              <a href={userProfile.socialLinks.facebook.startsWith('http') ? userProfile.socialLinks.facebook : `https://facebook.com/${userProfile.socialLinks.facebook}`}
-                target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-1.5 bg-blue-600 text-white text-[9px] font-black px-3 py-1.5 rounded-xl uppercase tracking-wider">
-                📘 Facebook
-              </a>
-            )}
-            {userProfile.socialLinks.twitter && (
-              <a href={userProfile.socialLinks.twitter.startsWith('http') ? userProfile.socialLinks.twitter : `https://x.com/${userProfile.socialLinks.twitter.replace('@','')}`}
-                target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-1.5 bg-slate-800 text-white text-[9px] font-black px-3 py-1.5 rounded-xl uppercase tracking-wider">
-                𝕏 Twitter
-              </a>
-            )}
+        {/* Liens réseaux sociaux avec vrais logos */}
+        {userProfile.socialLinks && Object.values(userProfile.socialLinks).some(Boolean) && (
+          <div className="flex justify-center mb-3">
+            <SocialBar links={userProfile.socialLinks} size={36} />
           </div>
         )}
 
