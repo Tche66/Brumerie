@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { createProduct, canUserPublish } from '@/services/productService';
+import { ConditionSelector, Condition } from '@/components/ConditionBadge';
 import { compressImage } from '@/utils/helpers';
 import { CATEGORIES, NEIGHBORHOODS, PLAN_LIMITS } from '@/types';
 
@@ -31,6 +32,8 @@ export function SellPage({ onClose, onSuccess }: SellPageProps) {
   const [title, setTitle] = useState('');
   const [price, setPrice] = useState('');
   const [originalPrice, setOriginalPrice] = useState('');
+  const [condition, setCondition] = useState<Condition | ''>('');
+  const [quantity, setQuantity] = useState('1');
   const [category, setCategory] = useState('');
   const [description, setDescription] = useState('');
   // Multi-ville : jusqu'à 3 quartiers
@@ -98,6 +101,8 @@ export function SellPage({ onClose, onSuccess }: SellPageProps) {
         originalPrice: originalPrice.trim() && parseFloat(originalPrice) > parseFloat(price) ? parseFloat(originalPrice) : undefined,
         description: description.trim(),
         category,
+        condition: condition || undefined,
+        quantity: parseInt(quantity) > 1 ? parseInt(quantity) : undefined,
         neighborhood: selectedCities[0], // principal pour compatibilité
         neighborhoods: selectedCities,   // multi-ville
         sellerId: userProfile.id,
@@ -231,8 +236,39 @@ export function SellPage({ onClose, onSuccess }: SellPageProps) {
             </div>
             <div>
               <label className="text-[10px] font-bold uppercase text-slate-400 tracking-widest ml-1 block mb-2">Description</label>
-              <textarea rows={4} placeholder="État, accessoires inclus, troc possible ?..." value={description} onChange={e => setDescription(e.target.value)}
+              <textarea rows={4} placeholder="Accessoires inclus, troc possible ?..." value={description} onChange={e => setDescription(e.target.value)}
                 className="w-full px-5 py-5 bg-slate-50 rounded-2xl text-sm border-2 border-transparent focus:border-green-600 focus:bg-white outline-none transition-all resize-none" />
+            </div>
+
+            {/* État du produit */}
+            <div>
+              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-widest ml-1 block mb-3">
+                État du produit <span className="text-slate-300 normal-case font-medium">(recommandé)</span>
+              </label>
+              <ConditionSelector value={condition} onChange={setCondition} />
+            </div>
+
+            {/* Quantité */}
+            <div>
+              <label className="text-[10px] font-bold uppercase text-slate-400 tracking-widest ml-1 block mb-2">
+                Quantité disponible
+              </label>
+              <div className="flex items-center gap-4 bg-slate-50 rounded-2xl px-5 py-4">
+                <button type="button" onClick={() => setQuantity((q: string) => String(Math.max(1, parseInt(q) - 1)))}
+                  className="w-10 h-10 flex items-center justify-center rounded-xl bg-white border border-slate-200 font-black text-slate-700 text-lg active:scale-90 transition-all shadow-sm">
+                  −
+                </button>
+                <div className="flex-1 text-center">
+                  <p className="font-black text-2xl text-slate-900">{quantity}</p>
+                  <p className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">
+                    {parseInt(quantity) <= 1 ? 'Article unique' : `${quantity} en stock`}
+                  </p>
+                </div>
+                <button type="button" onClick={() => setQuantity((q: string) => String(parseInt(q) + 1))}
+                  className="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-900 text-white font-black text-lg active:scale-90 transition-all shadow-sm">
+                  +
+                </button>
+              </div>
             </div>
           </div>
         )}

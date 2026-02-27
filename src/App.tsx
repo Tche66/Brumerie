@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+// src/App.tsx — Fix hooks violation #300/#310 + architecture propre
+import React, { useState, useEffect, useRef } from 'react';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
-// src/App.tsx — Sprint 2 : Messagerie intégrée
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { updateUserProfile } from '@/services/userService';
 import { subscribeTotalUnread } from '@/services/messagingService';
@@ -38,7 +38,7 @@ type Page =
   | 'settings' | 'privacy' | 'terms' | 'about' | 'notifications'
   | 'order-flow' | 'order-status' | 'shop-customize' | 'dashboard' | 'edit-product';
 
-// ── AuthGate ─────────────────────────────────────────────────
+// ── AuthGate — composant dédié hors auth ──────────────────────
 function AuthGate() {
   const { userProfile, currentUser } = useAuth();
   const [showPrivacy, setShowPrivacy] = React.useState(false);
@@ -50,7 +50,6 @@ function AuthGate() {
   };
 
   if (showPrivacy) return <PrivacyPage onBack={() => setShowPrivacy(false)} isTerms={privacyMode === 'terms'} />;
-
   if (currentUser && userProfile && !userProfile.role) {
     return (
       <RoleSelectPage
@@ -98,51 +97,84 @@ function RoleSwitchModal({ currentRole, onConfirm, onCancel }: {
   );
 }
 
-// ── AppContent ────────────────────────────────────────────────
-function AppContent() {
+// ── AppShell — rendu uniquement si authentifié ────────────────
+// TOUS les hooks sont déclarés ici, AUCUN return conditionnel avant eux
+function AppShell() {
   const { currentUser, userProfile } = useAuth();
-  const [activePage, setActivePage] = useState<Page>('home');
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [productHistory, setProductHistory] = useState<Product[]>([]);
-  const [selectedSellerId, setSelectedSellerId] = useState<string | null>(null);
-  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
-  const [productToEdit, setProductToEdit] = useState<Product | null>(null);
-  const [orderFlowProduct, setOrderFlowProduct] = useState<any>(null);
-  const [selectedOrderId, setSelectedOrderId] = useState<string>('');
-  const [navigationHistory, setNavigationHistory] = useState<Page[]>(['home']);
-  const [showRoleSwitch, setShowRoleSwitch] = useState(false);
-  const [unreadMessages, setUnreadMessages] = useState(0);
   const { toasts, showToast, dismissToast } = useToast();
-  const prevNotifsRef = React.useRef<Set<string>>(new Set());
 
+  // ── État de navigation ──
+  const [activePage, setActivePage]               = useState<Page>('home');
+  const [selectedProduct, setSelectedProduct]     = useState<Product | null>(null);
+  const [productHistory, setProductHistory]       = useState<Product[]>([]);
+  const [selectedSellerId, setSelectedSellerId]   = useState<string | null>(null);
+  const [selectedConversation, setSelectedConversation] = useState<Conversation | null>(null);
+  const [productToEdit, setProductToEdit]         = useState<Product | null>(null);
+  const [orderFlowProduct, setOrderFlowProduct]   = useState<any>(null);
+  const [selectedOrderId, setSelectedOrderId]     = useState<string>('');
+  const [navigationHistory, setNavigationHistory] = useState<Page[]>(['home']);
+  const [showRoleSwitch, setShowRoleSwitch]       = useState(false);
+  const [unreadMessages, setUnreadMessages]       = useState(0);
+  const prevNotifsRef                             = useRef<Set<string>>(new Set());
+
+  const role    = userProfile?.role || 'buyer';
+  const isBuyer = role === 'buyer';
+  const MAIN_PAGES: Page[] = ['home', 'messages', 'profile', 'order-status', 'dashboard', ...(isBuyer ? [] : ['sell' as Page])];
+
+  // ── Helpers navigation (définis AVANT les useEffect) ──────────
+  const navigate = (page: Page) => {
+    setNavigationHistory((prev: Page[]) => [...prev, page]);
+    setActivePage(page);
+    window.history.pushState({ page }, '', window.location.pathname);
+  };
+
+  const goBack = () => {
+    // Note: navigationHistory et productHistory sont lus dans les setState fonctionnels
+    setNavigationHistory((prevNav: Page[]) => {
+      if (prevNav.length <= 1) { setActivePage('home'); return ['home']; }
+      const h = prevNav.slice(0, -1);
+      const prevPage = h[h.length - 1];
+      if (prevPage === 'product-detail') {
+        setProductHistory((prevStack: Product[]) => {
+          if (prevStack.length === 0) return prevStack;
+          const newStack = prevStack.slice(0, -1);
+          setSelectedProduct(prevStack[prevStack.length - 1]);
+          return newStack;
+        });
+      }
+      setActivePage(prevPage);
+      return h;
+    });
+  };
+
+  // ── useEffect #1 — scroll top à chaque changement de page ────
   useEffect(() => { window.scrollTo(0, 0); }, [activePage, selectedProduct]);
 
-  // ✅ Reset navigation vers 'home' quand l'utilisateur se déconnecte
-  // Évite les crashs sur des pages qui nécessitent userProfile
+  // ── useEffect #2 — reset état si déconnexion ─────────────────
   useEffect(() => {
     if (!currentUser) {
       setActivePage('home');
       setSelectedProduct(null);
       setSelectedSellerId(null);
       setSelectedConversation(null);
+      setProductHistory([]);
+      setNavigationHistory(['home']);
     }
   }, [currentUser]);
 
-  // Abonnement total messages non-lus → badge BottomNav
+  // ── useEffect #3 — messages non-lus ──────────────────────────
   useEffect(() => {
     if (!currentUser) return;
-    const unsub = subscribeTotalUnread(currentUser.uid, setUnreadMessages);
-    return unsub;
-  }, [currentUser]);
+    return subscribeTotalUnread(currentUser.uid, setUnreadMessages);
+  }, [currentUser?.uid]);
 
-  // Abonnement notifications → toast in-app quand nouvelle notif
+  // ── useEffect #4 — notifications in-app ──────────────────────
   useEffect(() => {
     if (!currentUser) return;
-    const unsub = subscribeToNotifications(currentUser.uid, (notifs) => {
+    return subscribeToNotifications(currentUser.uid, (notifs: any[]) => {
       notifs.filter(n => !n.read).forEach(notif => {
         if (!prevNotifsRef.current.has(notif.id)) {
           prevNotifsRef.current.add(notif.id);
-          // Afficher le toast seulement pour les nouvelles notifs
           if (prevNotifsRef.current.size > 1) {
             showToast({
               type: notif.type as any,
@@ -152,100 +184,54 @@ function AppContent() {
                 ? () => handleStartChat(notif.data!.conversationId!)
                 : undefined,
             });
-          } else {
-            // Premier chargement — juste initialiser la ref
           }
         }
       });
     });
-    return unsub;
-  }, [currentUser]);
+  }, [currentUser?.uid]);
 
-  if (!currentUser) return <AuthGate />;
-
-  if (userProfile && !userProfile.role) {
-    return (
-      <RoleSelectPage userName={userProfile.name}
-        onSelect={async (role) => { await updateUserProfile(currentUser.uid, { role }); window.location.reload(); }} />
-    );
-  }
-
-  const role = userProfile?.role || 'buyer';
-  const isBuyer = role === 'buyer';
-  const MAIN_PAGES: Page[] = ['home', 'messages', 'profile', 'order-status', 'dashboard', ...(isBuyer ? [] : ['sell' as Page])];
-
-  const navigate = (page: Page) => {
-    setNavigationHistory(prev => [...prev, page]);
-    setActivePage(page);
-    // Pousser un état dans l'historique navigateur pour intercepter le bouton retour physique
-    window.history.pushState({ page }, '', window.location.pathname);
-  };
-
-  const goBack = () => {
-    if (navigationHistory.length > 1) {
-      const h = [...navigationHistory]; h.pop();
-      const prevPage = h[h.length - 1];
-      // Si on revient sur product-detail, restaurer le produit précédent
-      if (prevPage === 'product-detail' && productHistory.length > 0) {
-        const stack = [...productHistory];
-        const prevProduct = stack.pop()!;
-        setProductHistory(stack);
-        setSelectedProduct(prevProduct);
-      }
-      setNavigationHistory(h);
-      setActivePage(prevPage);
-    } else { setActivePage('home'); }
-  };
-
-  // ── Interception touche retour physique du téléphone ──────────
+  // ── useEffect #5 — interception bouton retour physique ───────
   useEffect(() => {
-    // État initial dans l'historique (sans déclencher popstate)
     window.history.replaceState({ page: 'home' }, '', window.location.pathname);
-
-    const handlePopState = (e: PopStateEvent) => {
-      // Empêche le navigateur de vraiment naviguer
-      // On gère nous-mêmes le retour
-      if (navigationHistory.length > 1) {
-        goBack();
-        // Repousser un état pour garder le bouton retour disponible
-        window.history.pushState({ page: activePage }, '', window.location.pathname);
-      } else {
-        // On est à la racine — remettre l'état pour pas quitter
-        window.history.pushState({ page: 'home' }, '', window.location.pathname);
-      }
+    const handlePopState = () => {
+      goBack();
+      window.history.pushState({ page: 'home' }, '', window.location.pathname);
     };
-
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [navigationHistory, activePage, productHistory]);
+  }, []); // Stable — goBack lit toujours le state le plus récent via setState fonctionnel
 
+  // ── Handlers ─────────────────────────────────────────────────
   const handleProductClick = (product: Product) => {
-    // Empiler le produit actuel si on est déjà sur product-detail
     if (activePage === 'product-detail' && selectedProduct) {
       setProductHistory(prev => [...prev, selectedProduct]);
     }
     setSelectedProduct(product);
     navigate('product-detail');
   };
-  const handleSellerClick = (sellerId: string) => { setSelectedSellerId(sellerId); navigate('seller-profile'); };
+
+  const handleSellerClick = (sellerId: string) => {
+    setSelectedSellerId(sellerId);
+    navigate('seller-profile');
+  };
+
   const handleBottomNavNavigate = (page: string) => {
-    setSelectedProduct(null); setSelectedSellerId(null); setSelectedConversation(null);
-    setProductHistory([]); // vider la pile produit
-    const target = page === 'orders' ? 'order-status' : page === 'tableau' ? 'dashboard' : page;
+    setSelectedProduct(null);
+    setSelectedSellerId(null);
+    setSelectedConversation(null);
+    setProductHistory([]);
     setSelectedOrderId('');
-    setNavigationHistory([target as Page]);
+    const target = page === 'orders' ? 'order-status' : page === 'tableau' ? 'dashboard' : page;
+    setNavigationHistory((_prev: Page[]) => [target as Page]);
     setActivePage(target as Page);
   };
 
-  // Ouvrir une conversation depuis liste ou depuis produit
   const handleOpenConversation = (conv: Conversation) => {
     setSelectedConversation(conv);
     navigate('chat');
   };
 
-  // Depuis ProductDetailPage → créer/ouvrir conv par ID
   const handleStartChat = async (convId: string) => {
-    // On charge la conversation depuis son ID pour ouvrir le ChatPage
     const { getDoc, doc } = await import('firebase/firestore');
     const { db } = await import('@/config/firebase');
     const snap = await getDoc(doc(db, 'conversations', convId));
@@ -263,12 +249,12 @@ function AppContent() {
 
   const handleRoleSwitch = async () => {
     if (!currentUser || !userProfile) return;
-    const newRole = role === 'buyer' ? 'seller' : 'buyer';
-    await updateUserProfile(currentUser.uid, { role: newRole });
+    await updateUserProfile(currentUser.uid, { role: role === 'buyer' ? 'seller' : 'buyer' });
     setShowRoleSwitch(false);
     window.location.reload();
   };
 
+  // ── Rendu ─────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-white">
       <main>
@@ -285,10 +271,7 @@ function AppContent() {
             onSellerClick={handleSellerClick}
             onStartChat={handleStartChat}
             onProductClick={handleProductClick}
-            onBuyClick={(product) => {
-              setOrderFlowProduct(product);
-              navigate('order-flow');
-            }}
+            onBuyClick={(product) => { setOrderFlowProduct(product); navigate('order-flow'); }}
           />
         )}
         {activePage === 'seller-profile' && selectedSellerId && (
@@ -313,9 +296,7 @@ function AppContent() {
         {activePage === 'privacy' && <PrivacyPage onBack={goBack} />}
         {activePage === 'terms' && <PrivacyPage onBack={goBack} isTerms />}
         {activePage === 'about' && <PrivacyPage onBack={goBack} isAbout />}
-        {activePage === 'shop-customize' && (
-          <ShopCustomizePage onBack={goBack} onSaved={goBack} />
-        )}
+        {activePage === 'shop-customize' && <ShopCustomizePage onBack={goBack} onSaved={goBack} />}
         {activePage === 'dashboard' && (
           <DashboardPage
             onBack={goBack}
@@ -330,23 +311,15 @@ function AppContent() {
         {activePage === 'notifications' && (
           <NotificationsPage
             onBack={goBack}
-            onOpenConversation={async (convId) => {
-              await handleStartChat(convId);
-            }}
-            onOpenOrder={(orderId) => {
-              setSelectedOrderId(orderId);
-              handleBottomNavNavigate('orders');
-            }}
+            onOpenConversation={async (convId) => { await handleStartChat(convId); }}
+            onOpenOrder={(orderId) => { setSelectedOrderId(orderId); handleBottomNavNavigate('orders'); }}
           />
         )}
         {activePage === 'order-flow' && orderFlowProduct && (
           <OrderFlowPage
             product={orderFlowProduct}
             onBack={goBack}
-            onOrderCreated={(orderId) => {
-              setSelectedOrderId(orderId);
-              navigate('order-status');
-            }}
+            onOrderCreated={(orderId) => { setSelectedOrderId(orderId); navigate('order-status'); }}
           />
         )}
         {activePage === 'edit-product' && productToEdit && (
@@ -357,30 +330,58 @@ function AppContent() {
           />
         )}
         {activePage === 'order-status' && (
-          <OrderStatusPage
-            orderId={selectedOrderId || undefined}
-            onBack={goBack}
-          />
+          <OrderStatusPage orderId={selectedOrderId || undefined} onBack={goBack} />
         )}
       </main>
 
       {MAIN_PAGES.includes(activePage) && (
-        <BottomNav
-          activePage={activePage}
-          onNavigate={handleBottomNavNavigate}
-          role={role}
-          unreadMessages={unreadMessages}
-        />
+        <BottomNav activePage={activePage} onNavigate={handleBottomNavNavigate} role={role} unreadMessages={unreadMessages} />
       )}
 
       {showRoleSwitch && userProfile && (
         <RoleSwitchModal currentRole={role} onConfirm={handleRoleSwitch} onCancel={() => setShowRoleSwitch(false)} />
       )}
 
-      {/* Toast In-App */}
       <ToastContainer toasts={toasts} onDismiss={dismissToast} />
     </div>
   );
+}
+
+// ── AppContent — dispatcher auth / app ───────────────────────
+// Ce composant ne contient AUCUN hook — juste du routing conditionnel
+function AppContent() {
+  const { currentUser, userProfile, loading } = useAuth();
+
+  // Pendant le chargement initial Firebase
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-4 border-slate-100 border-t-green-600 rounded-full animate-spin" />
+          <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Chargement…</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Pas connecté → page de connexion/inscription
+  if (!currentUser) return <AuthGate />;
+
+  // Connecté mais rôle manquant → sélection du rôle
+  if (userProfile && !userProfile.role) {
+    return (
+      <RoleSelectPage
+        userName={userProfile.name}
+        onSelect={async (role) => {
+          await updateUserProfile(currentUser.uid, { role });
+          window.location.reload();
+        }}
+      />
+    );
+  }
+
+  // Authentifié + rôle ok → application complète
+  return <AppShell />;
 }
 
 export default function App() {

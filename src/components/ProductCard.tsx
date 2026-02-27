@@ -1,5 +1,6 @@
 // src/components/ProductCard.tsx
 import { VerifiedTag } from '@/components/VerifiedTag';
+import { ConditionBadge } from '@/components/ConditionBadge';
 import React, { useState } from 'react';
 import { Product } from '@/types';
 import { formatPrice } from '@/utils/helpers';
@@ -65,6 +66,9 @@ export function ProductCard({ product, onClick, onBookmark, isBookmarked = false
               Vendu
             </span>
           )}
+          {product.condition && product.status !== 'sold' && (
+            <ConditionBadge condition={product.condition} size="sm" />
+          )}
         </div>
 
         {/* Business badges top right */}
@@ -115,7 +119,14 @@ export function ProductCard({ product, onClick, onBookmark, isBookmarked = false
             {product.price.toLocaleString('fr-FR')}
           </p>
           <span className="text-[10px] font-bold text-slate-400 ml-0.5">FCFA</span>
-          {product.originalPrice && product.originalPrice > product.price && (() => {
+          {product.quantity && product.quantity > 1 && (
+          <div className="absolute bottom-[72px] right-3">
+            <span className="bg-slate-900/80 backdrop-blur-sm text-white text-[8px] font-black px-2 py-0.5 rounded-lg">
+              {product.quantity} en stock
+            </span>
+          </div>
+        )}
+        {product.originalPrice && product.originalPrice > product.price && (() => {
             const pct = Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100);
             return (
               <span className="bg-red-100 text-red-600 text-[8px] font-black px-1.5 py-0.5 rounded-lg">-{pct}%</span>

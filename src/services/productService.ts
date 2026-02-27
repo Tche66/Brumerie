@@ -246,6 +246,8 @@ export async function updateProduct(
     category?: string;
     neighborhood?: string;
     neighborhoods?: string[];
+    condition?: 'new' | 'like_new' | 'second_hand';
+    quantity?: number;
   }
 ): Promise<void> {
   try {

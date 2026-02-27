@@ -1,4 +1,5 @@
 import { VerifiedTag } from '@/components/VerifiedTag';
+import { ConditionBadge } from '@/components/ConditionBadge';
 import React, { useState, useRef, useEffect } from 'react';
 import { Product } from '@/types';
 import { CATEGORIES } from '@/types';
@@ -288,7 +289,23 @@ export function ProductDetailPage({ product, onBack, onSellerClick, onStartChat,
           <span className="bg-slate-100 text-slate-700 text-[9px] font-black px-4 py-2 rounded-xl uppercase tracking-widest">{categoryLabel}</span>
         </div>
 
-        <h1 className="text-2xl font-black text-slate-900 mb-6 leading-tight uppercase">{product.title}</h1>
+        <h1 className="text-2xl font-black text-slate-900 mb-3 leading-tight uppercase">{product.title}</h1>
+
+        {/* État + Quantité */}
+        {(product.condition || (product.quantity && product.quantity > 1)) && (
+          <div className="flex items-center gap-3 mb-5 flex-wrap">
+            {product.condition && <ConditionBadge condition={product.condition} size="md" />}
+            {product.quantity && product.quantity > 1 && (
+              <span className="inline-flex items-center gap-1.5 bg-slate-100 text-slate-700 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/>
+                  <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/>
+                </svg>
+                {product.quantity} disponibles
+              </span>
+            )}
+          </div>
+        )}
 
         {/* Description */}
         <div className="bg-slate-50 rounded-3xl p-5 mb-6 border border-slate-100">

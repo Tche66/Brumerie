@@ -18,6 +18,7 @@ export { MAX_CITIES };
 // ─── CATÉGORIES ──────────────────────────────────────────
 export const CATEGORIES = [
   { id: 'fashion',      label: 'Mode & Prêt-à-porter',    icon: '👗' },
+  { id: 'thrift',       label: 'Friperie & Yougouyougou',  icon: '🛍️' },
   { id: 'shoes',        label: 'Chaussures & Sneakers',   icon: '👟' },
   { id: 'beauty',       label: 'Beauté & Mèches',         icon: '💇‍♀️' },
   { id: 'phones',       label: 'High-Tech & Smartphones', icon: '📱' },
@@ -26,7 +27,6 @@ export const CATEGORIES = [
   { id: 'food',         label: 'Alimentation & Épicerie', icon: '🧺' },
   { id: 'babies',       label: 'Univers Bébé',            icon: '🍼' },
   { id: 'furniture',    label: 'Maison & Déco',           icon: '🖼️' },
-  { id: 'services',     label: 'Services & Prestations',  icon: '🛠️' },
 ];
 
 // ─── PAIEMENT MOBILE ──────────────────────────────────────
@@ -98,6 +98,8 @@ export interface Product {
   description: string;
   price: number;
   originalPrice?: number;   // Prix avant réduction (optionnel)
+  condition?: 'new' | 'like_new' | 'second_hand';  // État du produit
+  quantity?: number;        // Quantité disponible (1 par défaut)
   category: string;
   neighborhood: string;
   neighborhoods?: string[];
