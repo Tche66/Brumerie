@@ -1,77 +1,56 @@
-// src/services/otpService.ts — OTP via Netlify Function + Brevo
-import { doc, setDoc, getDoc, updateDoc, deleteField } from 'firebase/firestore';
-import { db } from '@/config/firebase';
+// src/services/otpService.ts — OTP 100% via Netlify Function (sans Firestore)
+// La Function gère : génération, stockage mémoire, envoi Brevo, vérification
 
-// ── Générer un code OTP à 6 chiffres ──────────────────────────
-export function generateOTP(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+const FUNCTION_URL = '/.netlify/functions/send-email';
+
+// ── Demander l'envoi d'un OTP ──────────────────────────────────
+// Retourne { success: true } ou { devCode: string } si Function non déployée
+export async function sendOTPEmail(
+  email: string, name: string
+): Promise<{ success: boolean; devCode?: string; error?: string }> {
+  try {
+    const res = await fetch(FUNCTION_URL, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'send_otp', email, name }),
+    });
+
+    const data = await res.json().catch(() => ({})) as any;
+
+    if (res.status === 429) throw new Error(data.error || 'Trop de tentatives');
+    if (res.ok && data.success) return { success: true };
+
+    console.error('[OTP send] Brevo error:', data);
+    throw new Error(data.error || `Erreur ${res.status}`);
+
+  } catch (err: any) {
+    // Function pas déployée (réseau/404) → mode dev
+    if (err.message?.includes('Failed to fetch') || err.message?.includes('404')) {
+      console.warn('[OTP DEV] Function non disponible');
+      return { success: false, devCode: 'MODE_DEV' };
+    }
+    throw err;
+  }
 }
 
-// ── Stocker le code OTP dans Firestore ─────────────────────────
-export async function storeOTP(email: string, code: string): Promise<void> {
-  const expires = new Date(Date.now() + 10 * 60 * 1000); // 10 min
-  await setDoc(doc(db, 'otp_verifications', email.toLowerCase()), {
-    code,
-    expires,
-    createdAt: new Date(),
-  });
-}
-
-// ── Vérifier le code OTP ───────────────────────────────────────
-export async function verifyOTP(
+// ── Vérifier un code OTP ───────────────────────────────────────
+export async function verifyOTPRemote(
   email: string, code: string
 ): Promise<'valid' | 'expired' | 'invalid'> {
-  const snap = await getDoc(doc(db, 'otp_verifications', email.toLowerCase()));
-  if (!snap.exists()) return 'invalid';
-
-  const data    = snap.data();
-  const expires = data.expires?.toDate ? data.expires.toDate() : new Date(data.expires);
-
-  if (new Date() > expires) return 'expired';
-  if (data.code !== code.trim()) return 'invalid';
-
-  // Invalider le code après usage
-  await updateDoc(doc(db, 'otp_verifications', email.toLowerCase()), {
-    code: deleteField(),
-    verified: true,
-    verifiedAt: new Date(),
-  });
-
-  return 'valid';
-}
-
-// ── Envoyer l'OTP via Netlify Function → Brevo ─────────────────
-export async function sendOTPEmail(
-  email: string, code: string, name: string
-): Promise<void> {
-  const endpoint = '/.netlify/functions/send-email';
-
-  const res = await fetch(endpoint, {
+  const res = await fetch(FUNCTION_URL, {
     method:  'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      type: 'otp',
-      to:   email,
-      name,
-      otp:  code,
-    }),
+    body: JSON.stringify({ action: 'verify_otp', email, code }),
   });
-
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    console.error('[sendOTPEmail] Brevo error:', err);
-    throw new Error(err.error || `HTTP ${res.status}`);
-  }
-
-  const result = await res.json();
-  console.log('[sendOTPEmail] Envoyé, messageId:', result.messageId);
+  const data = await res.json().catch(() => ({ result: 'invalid' })) as any;
+  return data.result || 'invalid';
 }
 
-// ── Envoyer un email de bienvenue (après inscription validée) ──
+// ── Email de bienvenue (non-bloquant) ─────────────────────────
 export async function sendWelcomeEmail(email: string, name: string): Promise<void> {
-  await fetch('/.netlify/functions/send-email', {
+  fetch(FUNCTION_URL, {
     method:  'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ type: 'welcome', to: email, name }),
-  });
+    body: JSON.stringify({ action: 'welcome', email, name }),
+  }).catch(console.warn);
 }

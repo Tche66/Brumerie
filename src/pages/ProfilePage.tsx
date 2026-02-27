@@ -30,6 +30,7 @@ export function ProfilePage({ onProductClick, onNavigate }: ProfilePageProps) {
   const [activeTab, setActiveTab] = useState<Tab>('active');
   const [reviews, setReviews] = useState<Review[]>([]);
   const [actionProduct, setActionProduct] = useState<Product | null>(null);
+  const [deleteModalProduct, setDeleteModalProduct] = useState<string | null>(null);
   const [bookmarkIds, setBookmarkIds] = useState<Set<string>>(new Set());
 
   useEffect(() => { if (userProfile) loadUserProducts(); }, [userProfile]);
