@@ -3,6 +3,7 @@ import { VerifiedTag } from '@/components/VerifiedTag';
 import { subscribeSellerReviews } from '@/services/reviewService';
 import { Review } from '@/types';
 import { SocialBar } from '@/components/SocialIcon';
+import { ConfirmModal } from '@/components/ConfirmModal';
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 

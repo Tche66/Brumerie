@@ -11,7 +11,7 @@ import {
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '@/config/firebase';
 import { User } from '@/types';
-import { generateOTP, storeOTP, verifyOTP, sendOTPEmail } from '@/services/otpService';
+import { generateOTP, storeOTP, verifyOTP, sendOTPEmail, sendWelcomeEmail } from '@/services/otpService';
 import { applyReferral, ensureReferralCode } from '@/services/referralService';
 
 interface AuthContextType {
@@ -56,9 +56,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       neighborhood: userData.neighborhood || '',
       isVerified: false,
       createdAt: new Date(),
-      publicationCount: 0,
-      publicationLimit: 50,
-      lastPublicationReset: new Date(),
     };
 
     await setDoc(doc(db, 'users', uid), newUser);
@@ -66,6 +63,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Générer le code parrainage automatiquement
     await ensureReferralCode(uid, userData.name || '');
+
+    // Email de bienvenue (non-bloquant)
+    sendWelcomeEmail(email, userData.name || '').catch(console.warn);
 
     // Appliquer le parrainage si un code a été fourni
     if (userData.referredBy) {
